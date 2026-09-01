@@ -1,1 +1,1 @@
-web: gunicorn portofolio.wsgi --log-file -
+web: gunicorn portofolio.wsgi --bind 0.0.0.0:$PORT --log-file -
