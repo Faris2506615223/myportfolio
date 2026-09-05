@@ -12,6 +12,42 @@
     --line: #e3d9c9;
     --text-muted: #6b6459;
     --radius: 4px;
+
+    /* Passion section variables */
+    --color-bg: #f5f3ee;
+    --color-bg-card: #faf9f6;
+    --color-bg-ground: #ebe9e4;
+    --color-text-main: #2e2e2e;
+    --color-accent-forest: #5d6b57;
+    --color-accent-ocean: #6b8ca3;
+    --color-accent-ice: #dce7ee;
+    --color-border-subtle: rgba(46, 46, 46, 0.08);
+    --color-border-accent: rgba(93, 107, 87, 0.15);
+    --font-heading: "Playfair Display", Georgia, serif;
+    --font-body: "Lato", Helvetica, Arial, sans-serif;
+    --font-size-h3: clamp(22px, 3vw, 32px);
+    --font-size-lead: clamp(18px, 2.2vw, 22px);
+    --font-size-body: clamp(15px, 1.1vw, 17px);
+    --font-size-small: clamp(12px, .9vw, 14px);
+    --space-xs: clamp(8px, 1.2vw, 12px);
+    --space-sm: clamp(14px, 1.8vw, 20px);
+    --space-md: clamp(24px, 3.2vw, 36px);
+    --space-lg: clamp(44px, 5.5vw, 64px);
+    --space-xl: clamp(80px, 10vw, 120px);
+    --space-xxl: clamp(120px, 15vw, 180px);
+    --radius-sm: 4px;
+    --radius-md: 12px;
+    --radius-lg: 24px;
+    --radius-full: 9999px;
+    --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.02);
+    --shadow-medium: 0 10px 30px rgba(0, 0, 0, 0.04);
+    --shadow-glow: 0 8px 30px rgba(93, 107, 87, 0.06);
+    --transition-quick: .3s cubic-bezier(.25, .8, .25, 1);
+    --transition-smooth: .8s cubic-bezier(.25, 1, .5, 1);
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -272,5 +308,260 @@ h1, .brand {
 @media (max-width: 600px) {
     .know-me-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================================
+   Passion / Works Section
+   ========================================================================== */
+
+.works-section {
+    padding: var(--space-xxl) 0;
+    border-top: 1px solid var(--line);
+}
+
+.works-section .container {
+    max-width: 1100px;
+}
+
+.works-header {
+    margin-bottom: var(--space-xl);
+    text-align: center;
+}
+
+.works-header .section-title {
+    font-family: var(--font-heading);
+    color: var(--color-text-main);
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 1.1;
+    font-weight: 400;
+    margin-bottom: var(--space-sm);
+}
+
+.section-subtitle {
+    font-size: var(--font-size-lead);
+    font-family: var(--font-heading);
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.mt-md {
+    margin-top: var(--space-md);
+}
+
+.works-filters {
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    flex-wrap: wrap;
+    display: flex;
+}
+
+.filter-btn {
+    border: 1px solid var(--color-border-accent);
+    color: var(--color-text-muted);
+    border-radius: var(--radius-full);
+    font-family: var(--font-body);
+    font-size: var(--font-size-small);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: default;
+    transition: var(--transition-quick);
+    background: transparent;
+    padding: 8px 20px;
+    font-weight: 700;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: var(--color-accent-forest);
+    color: var(--color-bg);
+    border-color: var(--color-accent-forest);
+}
+
+/* Tech Stacks Marquee */
+
+.works-grid {
+    width: 100%;
+    display: block;
+}
+
+.tech-stack-section {
+    width: 100%;
+    padding: var(--space-md) 0;
+    gap: var(--space-md);
+    flex-direction: column;
+    display: flex;
+}
+
+.marquee-track-wrap {
+    contain: layout style;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.marquee-track-wrap:before,
+.marquee-track-wrap:after {
+    content: "";
+    z-index: 2;
+    pointer-events: none;
+    width: 120px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+
+.marquee-track-wrap:before {
+    background: linear-gradient(to right, var(--paper), transparent);
+    left: 0;
+}
+
+.marquee-track-wrap:after {
+    background: linear-gradient(to left, var(--paper), transparent);
+    right: 0;
+}
+
+.marquee-track {
+    will-change: transform;
+    width: max-content;
+    display: flex;
+}
+
+.marquee-left {
+    animation: 30s linear infinite marquee-scroll-left;
+}
+
+.marquee-right {
+    animation: 30s linear infinite marquee-scroll-right;
+}
+
+.marquee-track-wrap:hover .marquee-left,
+.marquee-track-wrap:hover .marquee-right {
+    animation-play-state: paused;
+}
+
+.marquee-inner {
+    gap: 20px;
+    padding: 0 10px;
+    display: flex;
+}
+
+@keyframes marquee-scroll-left {
+    0% {
+        transform: translate(0);
+    }
+    100% {
+        transform: translate(-50%);
+    }
+}
+
+@keyframes marquee-scroll-right {
+    0% {
+        transform: translate(-50%);
+    }
+    100% {
+        transform: translate(0);
+    }
+}
+
+.tech-card {
+    cursor: default;
+    background: linear-gradient(#fff, #f0f0f0);
+    border: 2px solid #ddd;
+    border-radius: 15px;
+    flex-shrink: 0;
+    justify-content: center;
+    align-items: center;
+    width: 160px;
+    height: 120px;
+    transition: transform .3s, box-shadow .3s, border-color .3s;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.tech-card:before {
+    content: "";
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, transparent 60%);
+    position: absolute;
+    inset: 0;
+}
+
+.tech-card:hover {
+    border-color: var(--color-accent-forest);
+    transform: scale(1.07) translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.tech-card-inner {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 12px;
+    display: flex;
+}
+
+.tech-card-inner img {
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+    border-radius: 8px;
+    width: 52px;
+    height: 52px;
+    transition: transform .3s;
+}
+
+.tech-card:hover .tech-card-inner img {
+    transform: scale(1.1);
+}
+
+.tech-card-name {
+    font-family: var(--font-body);
+    letter-spacing: .5px;
+    color: var(--color-text-main);
+    text-align: center;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Media Queries for Passion Section */
+@media (max-width: 768px) {
+    .tech-card {
+        width: 130px;
+        height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .works-filters {
+        gap: 8px;
+    }
+    .filter-btn {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+    .tech-card {
+        width: 110px;
+        height: 90px;
+    }
+    .tech-card-name {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    .tech-card {
+        width: 90px;
+        height: 80px;
     }
 }
