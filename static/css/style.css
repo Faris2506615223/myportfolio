@@ -13,7 +13,7 @@
     --text-muted: #6b6459;
     --radius: 4px;
 
-    /* Passion section variables */
+    /* passion */
     --color-bg: #f5f3ee;
     --color-bg-card: #faf9f6;
     --color-bg-ground: #ebe9e4;
@@ -311,9 +311,7 @@ h1, .brand {
     }
 }
 
-/* ==========================================================================
-   Passion / Works Section
-   ========================================================================== */
+/* passion */
 
 .works-section {
     padding: var(--space-xxl) 0;
@@ -381,7 +379,7 @@ h1, .brand {
     border-color: var(--color-accent-forest);
 }
 
-/* Tech Stacks Marquee */
+/* tech marquee */
 
 .works-grid {
     width: 100%;
@@ -534,7 +532,7 @@ h1, .brand {
     line-height: 1;
 }
 
-/* Media Queries for Passion Section */
+/* responsive passion */
 @media (max-width: 768px) {
     .tech-card {
         width: 130px;
