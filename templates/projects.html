@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }} - Portofolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Lora:ital,wght@0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
+            <nav>
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
+                <a href="{% url 'main:show_projects' %}">Projects</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+    <section class="project-page-section" id="projects">
+        <div class="container">
+            <p class="section-kicker">Karya dan Eksplorasi</p>
+            <h1>Projects</h1>
+
+            <div class="project-page-grid">
+                {% for project in project_list %}
+                    <article class="project-page-card">
+                        {% if project.thumbnail %}
+                            <div class="project-page-thumb">
+                                <img src="{{ project.thumbnail }}" alt="{{ project.title }}" loading="lazy">
+                            </div>
+                        {% endif %}
+                        <div class="project-page-body">
+                            <span class="project-category">
+                                {{ project.category }}
+                            </span>
+                            <h2>{{ project.title }}</h2>
+                            <p class="project-description">
+                                {{ project.description }}
+                            </p>
+                            <div class="project-card-actions">
+                                <a href="{% url 'main:show_project_detail' project.id %}" class="project-link project-link--primary">
+                                    Detail Proyek &rarr;
+                                </a>
+                                {% if project.project_url %}
+                                    <a href="{{ project.project_url }}" class="project-link project-link--secondary" target="_blank" rel="noopener noreferrer">
+                                        Demo / Repo &nearr;
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p class="empty-state">
+                        Belum ada proyek yang ditambahkan.
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+        </div>
+    </footer>
+</body>
+</html>

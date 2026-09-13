@@ -617,3 +617,211 @@ h1, .brand {
     font-size: 0.85rem;
     font-weight: 600;
 }
+
+/* projects page */
+.project-page-section {
+    padding: 4rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.project-page-section h1 {
+    margin: 0.4rem 0 1.5rem;
+    font-size: 2rem;
+}
+
+.project-page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.project-page-card {
+    background-color: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-quick), box-shadow var(--transition-quick);
+}
+
+.project-page-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.project-page-thumb {
+    width: 100%;
+    height: 180px;
+    background-color: var(--color-bg-ground);
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+}
+
+.project-page-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.project-page-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.project-category {
+    color: var(--accent-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.project-page-card h2 {
+    margin: 0.4rem 0 0.6rem;
+    font-size: 1.25rem;
+}
+
+.project-description {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    flex-grow: 1;
+}
+
+.project-card-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.project-link {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition-quick);
+}
+
+.project-link--primary {
+    color: var(--accent-dark);
+}
+
+.project-link--primary:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.project-link--secondary {
+    color: var(--text-muted);
+}
+
+.project-link--secondary:hover {
+    color: var(--ink);
+}
+
+/* Project detail page */
+.project-detail-section {
+    padding: 3rem 0 5rem;
+    border-top: 1px solid var(--line);
+}
+
+.project-detail-container {
+    max-width: 800px;
+}
+
+.project-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-dark);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: color var(--transition-quick);
+}
+
+.project-back-btn:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.project-detail-header {
+    margin-bottom: 2rem;
+}
+
+.project-detail-title {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    margin: 0.5rem 0;
+    line-height: 1.2;
+}
+
+.project-detail-meta {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.project-detail-hero-img {
+    width: 100%;
+    max-height: 420px;
+    background-color: var(--color-bg-ground);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+}
+
+.project-detail-hero-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.project-detail-content {
+    background-color: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 2rem;
+}
+
+.project-detail-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--ink);
+}
+
+.project-detail-body {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #444;
+    white-space: pre-line;
+}
+
+.project-detail-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+}
+
+.btn-project-cta {
+    display: inline-block;
+    background-color: var(--color-accent-forest);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color var(--transition-quick), transform var(--transition-quick);
+}
+
+.btn-project-cta:hover {
+    background-color: #4b5746;
+    transform: translateY(-1px);
+}

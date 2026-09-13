@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
-from main.models import Experience
+from main.models import Experience, Project
 
 
 def show_main(request):
@@ -22,3 +22,21 @@ def show_experience(request):
         "experience_list": Experience.objects.all(),
     }
     return render(request, "experience.html", context)
+
+
+def show_projects(request):
+    context = {
+        "name": "Faris",
+        "project_list": Project.objects.all(),
+    }
+    return render(request, "projects.html", context)
+
+
+def show_project_detail(request, id):
+    project = get_object_or_404(Project, pk=id)
+    context = {
+        "name": "Faris",
+        "project": project,
+    }
+    return render(request, "project_detail.html", context)
+
