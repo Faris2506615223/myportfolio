@@ -825,3 +825,258 @@ h1, .brand {
     background-color: #4b5746;
     transform: translateY(-1px);
 }
+
+/* tutorial 3 men */
+
+.message-list {
+    padding-top: 1rem;
+}
+
+.message {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: #fff;
+}
+
+.message.success {
+    border-color: #86b68d;
+    color: #285c31;
+    background-color: #eef8ef;
+}
+
+.project-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.project-page-header h1 {
+    margin: 0;
+}
+
+.button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 42px;
+    padding: 0.65rem 1rem;
+    border: 0;
+    border-radius: var(--radius);
+    background-color: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.button:hover {
+    background-color: var(--accent-dark);
+    transform: translateY(-1px);
+}
+
+.button-secondary {
+    background-color: var(--ink);
+}
+
+.button-danger {
+    background-color: #b42318;
+}
+
+.button-danger:hover {
+    background-color: #8f1c13;
+}
+
+.project-form-container {
+    max-width: 720px;
+}
+
+.project-form {
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: #fff;
+    color: var(--ink);
+    font: inherit;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.project-search__input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+}
+
+.form-help {
+    margin-top: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.form-error {
+    margin-top: 0.35rem;
+    color: #b42318;
+    font-size: 0.85rem;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.project-search {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.project-search__input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: #fff;
+    color: var(--ink);
+    font: inherit;
+}
+
+.project-card-actions {
+    flex-wrap: wrap;
+}
+
+.project-delete-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 1rem;
+    border: 0;
+    background: transparent;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-delete-modal:popover-open {
+    display: flex;
+}
+
+.project-delete-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background-color: rgba(28, 25, 23, 0.58);
+    cursor: default;
+}
+
+.project-delete-modal__content {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 480px);
+    padding: 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--paper);
+    box-shadow: 0 1rem 3rem rgba(28, 25, 23, 0.22);
+}
+
+.project-delete-modal__content h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.5rem;
+}
+
+.project-delete-modal__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 1rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.project-delete-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.project-delete-modal__actions form {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .project-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .project-add-button,
+    .project-search .button {
+        width: 100%;
+    }
+
+    .project-search {
+        flex-direction: column;
+    }
+
+    .project-delete-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .project-delete-modal__content {
+        width: 100%;
+        padding: 1.25rem;
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .project-delete-modal__actions {
+        flex-direction: column-reverse;
+    }
+
+    .project-delete-modal__actions .button {
+        width: 100%;
+    }
+}
