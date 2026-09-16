@@ -593,6 +593,16 @@ h1, .brand {
     background-color: #fff;
     border: 1px solid var(--line);
     border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+}
+
+.experience-thumbnail {
+    width: calc(100% + 2.5rem);
+    height: 160px;
+    margin: -1.25rem -1.25rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    object-fit: cover;
 }
 
 .experience-category {
@@ -612,10 +622,23 @@ h1, .brand {
     color: var(--text-muted);
 }
 
+.experience-description {
+    flex-grow: 1;
+}
+
 .experience-status {
     margin-top: 1rem;
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+.experience-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
 }
 
 /* projects page */
@@ -913,7 +936,8 @@ h1, .brand {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--line);
@@ -929,6 +953,7 @@ h1, .brand {
 
 .form-group input:focus,
 .form-group textarea:focus,
+.form-group select:focus,
 .project-search__input:focus {
     outline: 2px solid var(--accent);
     outline-offset: 1px;
@@ -974,7 +999,7 @@ h1, .brand {
     flex-wrap: wrap;
 }
 
-.project-delete-modal {
+.delete-modal {
     display: none;
     position: fixed;
     inset: 0;
@@ -991,11 +1016,11 @@ h1, .brand {
     justify-content: center;
 }
 
-.project-delete-modal:popover-open {
+.delete-modal:popover-open {
     display: flex;
 }
 
-.project-delete-modal__backdrop {
+.delete-modal__backdrop {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -1006,7 +1031,7 @@ h1, .brand {
     cursor: default;
 }
 
-.project-delete-modal__content {
+.delete-modal__content {
     position: relative;
     z-index: 1;
     width: min(100%, 480px);
@@ -1017,12 +1042,12 @@ h1, .brand {
     box-shadow: 0 1rem 3rem rgba(28, 25, 23, 0.22);
 }
 
-.project-delete-modal__content h2 {
+.delete-modal__content h2 {
     margin: 0 0 0.75rem;
     font-size: 1.5rem;
 }
 
-.project-delete-modal__close {
+.delete-modal__close {
     position: absolute;
     top: 0.75rem;
     right: 1rem;
@@ -1035,14 +1060,14 @@ h1, .brand {
     cursor: pointer;
 }
 
-.project-delete-modal__actions {
+.delete-modal__actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
     margin-top: 1.5rem;
 }
 
-.project-delete-modal__actions form {
+.delete-modal__actions form {
     margin: 0;
 }
 
@@ -1061,22 +1086,22 @@ h1, .brand {
         flex-direction: column;
     }
 
-    .project-delete-modal {
+    .delete-modal {
         align-items: flex-end;
         padding: 0;
     }
 
-    .project-delete-modal__content {
+    .delete-modal__content {
         width: 100%;
         padding: 1.25rem;
         border-radius: var(--radius) var(--radius) 0 0;
     }
 
-    .project-delete-modal__actions {
+    .delete-modal__actions {
         flex-direction: column-reverse;
     }
 
-    .project-delete-modal__actions .button {
+    .delete-modal__actions .button {
         width: 100%;
     }
 }

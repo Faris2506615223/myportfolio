@@ -1,48 +1,47 @@
 <button type="button"
         class="button button-danger"
-        popovertarget="delete-project-{{ project.id }}"
-        aria-label="Hapus {{ project.title }}">
+        popovertarget="delete-item-{{ modal_id }}"
+        aria-label="Hapus {{ item_type }} {{ item_title }}">
     Hapus
 </button>
 
-<div id="delete-project-{{ project.id }}"
-     class="project-delete-modal"
+<div id="delete-item-{{ modal_id }}"
+     class="delete-modal"
      popover="auto"
      role="dialog"
      aria-modal="true"
-     aria-labelledby="delete-project-title-{{ project.id }}">
+     aria-labelledby="delete-item-title-{{ modal_id }}">
     <button type="button"
-            class="project-delete-modal__backdrop"
-            popovertarget="delete-project-{{ project.id }}"
+            class="delete-modal__backdrop"
+            popovertarget="delete-item-{{ modal_id }}"
             popovertargetaction="hide"
             aria-label="Tutup konfirmasi hapus">
     </button>
 
-    <div class="project-delete-modal__content">
+    <div class="delete-modal__content">
         <button type="button"
-                class="project-delete-modal__close"
-                popovertarget="delete-project-{{ project.id }}"
+                class="delete-modal__close"
+                popovertarget="delete-item-{{ modal_id }}"
                 popovertargetaction="hide"
                 aria-label="Tutup konfirmasi hapus">
             &times;
         </button>
 
-        <h2 id="delete-project-title-{{ project.id }}">Hapus Project?</h2>
+        <h2 id="delete-item-title-{{ modal_id }}">Hapus {{ item_type }}?</h2>
         <p>
             Apakah Anda yakin ingin menghapus
-            <strong>{{ project.title }}</strong>?
+            <strong>{{ item_title }}</strong>?
         </p>
 
-        <div class="project-delete-modal__actions">
+        <div class="delete-modal__actions">
             <button type="button"
                     class="button button-secondary"
-                    popovertarget="delete-project-{{ project.id }}"
+                    popovertarget="delete-item-{{ modal_id }}"
                     popovertargetaction="hide">
                 Batal
             </button>
 
-            <form method="post"
-                  action="{% url 'main:delete_project' project.id %}">
+            <form method="post" action="{{ delete_url }}">
                 {% csrf_token %}
                 <button type="submit" class="button button-danger">
                     Ya, Hapus

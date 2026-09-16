@@ -1,10 +1,11 @@
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect, render
 from django.core import serializers
 from django.http import HttpResponse
-from main.forms import ProjectForm
-from main.models import Experience, Project
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+from main.forms import ExperienceForm, ProjectForm
+from main.models import Experience, Project
 
 
 def show_main(request):
@@ -19,12 +20,85 @@ def show_main(request):
     }
     return render(request, "index.html", context)
 
+
 def show_experience(request):
+    json_response = get_experiences_json(request)
+    deserialized_experiences = serializers.deserialize(
+        "json",
+        json_response.content.decode("utf-8"),
+    )
+    experiences = [item.object for item in deserialized_experiences]
+
     context = {
         "name": "Faris",
-        "experience_list": Experience.objects.all(),
+        "experience_list": experiences,
+        "title_query": request.GET.get("title", "").strip(),
     }
     return render(request, "experience.html", context)
+
+
+def create_experience(request):
+    if request.method == "POST":
+        form = ExperienceForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pengalaman baru berhasil ditambahkan.")
+            return redirect("main:show_experience")
+    else:
+        form = ExperienceForm()
+
+    context = {
+        "name": "Faris",
+        "form": form,
+        "form_title": "Tambah Experience",
+        "form_kicker": "Tambahkan perjalanan baru",
+        "submit_label": "Tambah Experience",
+    }
+    return render(request, "experience_form.html", context)
+
+
+def update_experience(request, id):
+    experience = get_object_or_404(Experience, pk=id)
+
+    if request.method == "POST":
+        form = ExperienceForm(request.POST, instance=experience)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pengalaman berhasil diperbarui.")
+            return redirect("main:show_experience")
+    else:
+        form = ExperienceForm(instance=experience)
+
+    context = {
+        "name": "Faris",
+        "form": form,
+        "form_title": "Ubah Experience",
+        "form_kicker": "Perbarui detail perjalanan",
+        "submit_label": "Simpan Perubahan",
+    }
+    return render(request, "experience_form.html", context)
+
+
+@require_POST
+def delete_experience(request, id):
+    experience = get_object_or_404(Experience, pk=id)
+    experience.delete()
+    messages.success(request, "Pengalaman berhasil dihapus.")
+    return redirect("main:show_experience")
+
+
+def get_experiences_json(request):
+    title_query = request.GET.get("title", "").strip()
+    experiences = Experience.objects.all()
+
+    if title_query:
+        experiences = experiences.filter(title__icontains=title_query)
+
+    experiences_json = serializers.serialize("json", experiences)
+    return HttpResponse(experiences_json, content_type="application/json")
+
 
 def show_projects(request):
     json_response = get_projects_json(request)
@@ -40,6 +114,7 @@ def show_projects(request):
         "title_query": request.GET.get("title", "").strip(),
     }
     return render(request, "projects.html", context)
+
 
 def create_project(request):
     if request.method == "POST":
@@ -58,6 +133,7 @@ def create_project(request):
     }
     return render(request, "projects_form.html", context)
 
+
 def show_project_detail(request, id):
     project = get_object_or_404(Project, pk=id)
     context = {
@@ -65,6 +141,7 @@ def show_project_detail(request, id):
         "project": project,
     }
     return render(request, "project_detail.html", context)
+
 
 def get_projects_json(request):
     title_query = request.GET.get("title", "").strip()
@@ -76,6 +153,7 @@ def get_projects_json(request):
     projects_json = serializers.serialize("json", projects)
     return HttpResponse(projects_json, content_type="application/json")
 
+
 def get_projects_xml(request):
     title_query = request.GET.get("title", "").strip()
     projects = Project.objects.all()
@@ -85,6 +163,7 @@ def get_projects_xml(request):
 
     projects_xml = serializers.serialize("xml", projects)
     return HttpResponse(projects_xml, content_type="application/xml")
+
 
 @require_POST
 def delete_project(request, id):
