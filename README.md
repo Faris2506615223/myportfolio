@@ -8,7 +8,7 @@
 
 ## Deskripsi Proyek
 
-Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 semantik dan CSS3 murni tanpa dependensi JavaScript. Website ini menyajikan informasi profil, latar belakang dan nilai personal (*Get to Know Me*), serta daftar keahlian teknologi (*Passion / Tech Stacks*) dengan animasi marquee dua arah murni CSS yang interaktif dan responsif di berbagai ukuran layar.
+Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 semantik dan CSS3 murni tanpa dependensi JavaScript. Website ini menyajikan profil, daftar proyek, pengalaman, dan keahlian teknologi. Data proyek dan pengalaman dikelola melalui form tervalidasi, disimpan pada database, serta tersedia melalui endpoint JSON. Seluruh halaman memakai template induk yang sama agar navigasi, pesan, metadata dasar, dan footer tetap konsisten.
 
 ---
 
@@ -71,6 +71,31 @@ Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 sema
 - [X] **Unit Testing Komprehensif**: Menulis 12 unit test di `main/tests.py` yang mencakup isolasi model, aksesibilitas URL (status 200), validasi template, rendering data dinamis, penanganan empty state, navigasi navbar, serta penanganan 404 pada detail view.
 - [X] **Refleksi & Dokumentasi**: Menjawab seluruh pertanyaan reflektif Tugas 2 di `README.md` secara terstruktur dan komprehensif.
 - [X] **Verifikasi Kelulusan**: Memastikan proyek lolos 100% pada `python manage.py test` (12 test passed) dan berjalan lancar tanpa error pada `python manage.py runserver`.
+
+---
+
+## Progres Pengerjaan (Tugas 3)
+
+- [X] **Template Inheritance**: Seluruh halaman HTML penuh menggunakan `{% extends "base.html" %}`; modal konfirmasi hapus Project dan Experience memakai satu partial reusable.
+- [X] **`ExperienceForm`**: Membuat `ModelForm` dengan field `title`, `description`, `category`, dan `thumbnail` yang mencakup input teks, textarea, pilihan kategori, dan validasi URL; `id`, `started_at`, serta `ended_at` tidak dapat diubah melalui form.
+- [X] **Create & Update**: Menambahkan halaman tambah dan ubah Experience dengan validasi bawaan Django, form yang terisi otomatis saat update, CSRF token, pesan sukses, dan redirect setelah penyimpanan.
+- [X] **Delete**: Menambahkan penghapusan Experience melalui request `POST`, CSRF token, dan modal konfirmasi; request `GET` ditolak dengan status `405 Method Not Allowed`.
+- [X] **JSON Data Delivery**: Menambahkan endpoint `/api/experiences/` yang mendukung filter judul dan mengembalikan hasil serialisasi model dengan content type `application/json`.
+- [X] **JSON Deserialization**: Halaman `/experience/` mengambil response endpoint JSON, mendeserialisasikannya menjadi objek `Experience`, lalu menampilkan data tersebut pada template.
+- [X] **UI/UX Tambahan**: Menambahkan pencarian Experience, empty state khusus hasil pencarian, thumbnail opsional, tombol aksi responsif, dan pesan keberhasilan operasi.
+- [X] **Automated Testing**: Menambahkan pengujian form field, template inheritance, validasi create, prefilled update, penyimpanan update, proteksi delete, endpoint JSON, filter, dan render hasil deserialisasi.
+- [X] **Verifikasi Akhir**: Seluruh 29 automated test lulus, `manage.py check` tidak menemukan masalah, dan server lokal merespons halaman Experience serta endpoint JSON dengan status `200`.
+
+### Endpoint Tugas 3
+
+| Method | Endpoint | Fungsi |
+| --- | --- | --- |
+| `GET` | `/experience/` | Menampilkan Experience dari hasil deserialisasi JSON |
+| `GET`, `POST` | `/experience/add/` | Menampilkan dan memproses form create |
+| `GET`, `POST` | `/experience/<uuid>/edit/` | Menampilkan dan memproses form update |
+| `POST` | `/experience/<uuid>/delete/` | Menghapus satu Experience |
+| `GET` | `/api/experiences/` | Mengirim semua Experience dalam format JSON |
+| `GET` | `/api/experiences/?title=...` | Mengirim Experience yang judulnya cocok |
 
 ---
 
@@ -149,6 +174,24 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
      - **Contoh 1 (Pembuatan Model Baru)**: Ketika membuat model baru `Project` di `main/models.py`. Kita harus menjalankan `makemigrations` untuk membuat berkas `0002_project.py` yang berisi operasi `CreateModel`, kemudian menjalankan `migrate` untuk mengeksekusi pembuatan tabel `main_project` di database SQLite.
      - **Contoh 2 (Penambahan Field Baru)**: Jika kemudian kita ingin menambahkan field tautan repositori `github_repo = models.URLField(blank=True, null=True)` pada model `Project`, kita harus menjalankan `makemigrations` untuk membuat migrasi dengan operasi `AddField`, lalu menjalankan `migrate` agar kolom baru tersebut benar-benar ditambahkan ke tabel database fisik melalui perintah `ALTER TABLE`.
 
+### Tugas 3
+
+1. **Jelaskan mengapa kita menggunakan `ModelForm` pada Django alih-alih membuat form HTML secara manual. Selain itu, jelaskan pula mengapa kita diwajibkan menambahkan `{% csrf_token %}` pada form tersebut!**
+
+   `ModelForm` menghubungkan form langsung dengan definisi model. Django dapat membentuk field dan widget yang sesuai, menjalankan validasi berdasarkan tipe serta batasan field model, menampilkan pesan error, dan menyimpan hasil validasi melalui `form.save()`. Jika form ditulis manual, pemetaan setiap input, validasi, konversi tipe, dan proses pembuatan atau pembaruan objek perlu ditangani sendiri sehingga kode lebih panjang dan lebih mudah tidak sinkron dengan model.
+
+   `{% csrf_token %}` menambahkan token rahasia ke form yang menggunakan metode `POST`. `CsrfViewMiddleware` membandingkan token tersebut dengan token milik sesi pengguna sebelum menerima perubahan data. Mekanisme ini mencegah situs lain mengirim request berbahaya memakai sesi pengguna tanpa sepengetahuannya. Token dibutuhkan pada form create, update, dan delete karena ketiganya mengubah state aplikasi.
+
+2. **Pada Tutorial 03, kita membahas format data JSON dan XML. Mengapa JSON lebih disukai dalam pengembangan aplikasi web modern dibandingkan XML?**
+
+   JSON umumnya lebih ringkas karena tidak membutuhkan pasangan tag pembuka dan penutup seperti XML. Struktur object dan array JSON juga langsung sesuai dengan tipe data yang lazim dipakai JavaScript, sehingga respons API lebih mudah diproses oleh browser dan banyak framework frontend. Ukuran payload yang lebih kecil serta ketersediaan parser bawaan di hampir semua bahasa membuat pertukaran data lebih praktis. XML tetap berguna pada sistem yang membutuhkan namespace, schema yang kompleks, atau integrasi lama, tetapi kebutuhan API web pada umumnya dapat dipenuhi dengan lebih sederhana oleh JSON.
+
+3. **Jelaskan alur yang terjadi saat kamu menggunakan fungsi view untuk mengembalikan data portofoliomu dalam bentuk JSON. Mengapa kita perlu melakukan proses serialization pada model Django sebelum datanya dikembalikan?**
+
+   Saat `/api/experiences/` diakses, URLconf meneruskan request ke `get_experiences_json`. View mengambil data melalui `Experience.objects.all()` dan menerapkan filter judul bila parameter `title` tersedia. `serializers.serialize("json", experiences)` kemudian mengubah setiap instance model menjadi teks JSON yang memuat nama model, primary key UUID, dan field datanya. Teks tersebut dikirim melalui `HttpResponse` dengan content type `application/json`.
+
+   Serialisasi diperlukan karena instance model dan `QuerySet` adalah objek Python yang juga membawa perilaku ORM; keduanya tidak dapat dikirim secara langsung melalui HTTP. HTTP mengirim byte atau teks, sehingga data harus diubah menjadi format pertukaran yang memiliki representasi standar. Pada halaman `/experience/`, respons JSON tersebut dideserialisasi kembali memakai `serializers.deserialize`, lalu objek hasilnya diberikan ke template agar alur data delivery dan konsumsi JSON dapat terlihat lengkap.
+
 ---
 
 ## AI Disclosure
@@ -169,12 +212,19 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Membuat fungsi controller `show_projects` pada `main/views.py`, rute bernama `show_projects` pada `main/urls.py`, dan template terpisah `templates/projects.html` dengan loop DTL serta penanganan *empty state*.
   - Menyusun 10 unit test komprehensif pada `main/tests.py` untuk menguji fungsionalitas URL, template, rendering data dinamis, empty state, dan integritas navigasi navbar.
   - Membantu memformulasikan penjelasan alur request-response Django MVT dan perbedaan `makemigrations` vs `migrate` untuk pertanyaan reflektif.
+- **Tugas 3**:
+  - Mengaudit template, model, form, view, URL, test, dan dokumentasi yang telah ada sebelum melakukan perubahan.
+  - Membuat `ExperienceForm`, alur create/update/delete Experience, endpoint JSON, dan proses deserialisasi untuk tampilan halaman.
+  - Merefactor modal hapus Project menjadi partial generik yang juga dipakai Experience serta memastikan semua halaman penuh mewarisi `base.html`.
+  - Menambahkan automated test untuk alur normal, data tidak valid, proteksi method delete, filtering JSON, dan template inheritance.
+  - Membantu merapikan tatanan bahasa pada dokumentasi, jawaban reflektif, serta AI disclosure yang spesifik terhadap perubahan kode.
 
 ### 3. Strategi Prompting
 
 - Menggunakan instruksi terarah dan bertahap (*step-by-step*).
 - Menetapkan batasan ketat sejak awal: melarang AI melakukan commit mandiri ke repositori Git, mewajibkan arsitektur MVT yang bersih dan modular, serta menjaga navbar dan footer tetap konsisten.
 - Memanfaatkan website live saya di Vercel (fufufarizz.vercel.app) sebagai acuan referensi data proyek dan estetika visual.
+- Untuk Tugas 3, memberikan checklist fitur dan rubrik penilaian lengkap agar AI dapat memetakan setiap perubahan kode ke kriteria yang harus diverifikasi.
 
 ### 4. Analisis Kritis & Perbaikan Mandiri
 
@@ -182,10 +232,13 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Pada percobaan awal di Tugas 1, AI cenderung menyertakan dependensi JavaScript (seperti GSAP untuk tab switcher dan Lenis untuk scroll) serta menambahkan kartu proyek dengan aset gambar lokal yang sempat menyebabkan broken image di browser.
   - AI sempat menghasilkan typo URL pada tautan GitHub (`https://https://github.com/...`).
   - AI berpotensi membuat commit otomatis jika tidak dibatasi secara tegas dalam prompt perintah.
+  - Solusi awal AI perlu diperiksa kembali karena refactor yang terlalu luas dapat menambah kompleksitas tanpa meningkatkan pemenuhan checklist.
+  - Browser terintegrasi tidak tersedia ketika Tugas 3 diverifikasi, sehingga pengecekan runtime dilanjutkan melalui request HTTP ke server lokal dan Django test client.
 - **Perbaikan Manual yang Dilakukan**:
   - Menginstruksikan AI untuk membuat rencana implementasi terlebih dahulu (*implementation plan*) dan melarang tindakan commit Git otomatis agar saya memegang kendali penuh atas riwayat commit repositori.
   - Memastikan data proyek yang dimasukkan ke database selaras dengan aset lokal yang telah disiapkan di `static/img/projects/`.
   - Memverifikasi secara langsung kelulusan seluruh unit test (`python manage.py test`) dan fungsionalitas lokal di browser (`python manage.py runserver`).
+  - Menjaga model `Experience` yang sudah sesuai kebutuhan agar tidak membuat migrasi skema yang tidak diperlukan, lalu memusatkan perubahan pada form, view, route, template, dan test.
 
 ### 5. Log Prompt Utama (ril aseli no fek fek)
 
@@ -194,3 +247,4 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
 3. *"Commit text: Jangan ubah kode ataupun melakukan commit. Saya ingin melakukan branching di git dan melakukan commit satu persatu, mulai dari bagian get to know me dan bagian cards. Untuk itu, saya ingin anda membuatkan copy writing dengan lengkap dengan format git checkout -b ..., git add ..., git commit -m "..." hingga git push ... saya ingin melakukan 3 commit 1. pembuatan get to know me 2. pembuatan cards 3, penggantian teks lorem ipsum cukup berikan copywritingnya, untuk kode card biar saya yang hapus dahulu untuk commit get to know me, untuk penggantian teks lorem ipsum juga biar saya yang ganti secara mandiri."*
 4. *"pastikan komentar penjelasan pada setiap kode yang dibuat bersifat natural dan tidak slop... Begitupun untuk AI disclosure, pastikan bahasa yang dibuat natural dan tidak AI slop"*
 5. *"/browser fufufarizz.vercel.app, Saya memberikan link browser sebagai referensi tahap 10 tugas yang sudah jadi, sedangkan sekarang, saya meminta anda untuk menyelesaikan tahap 2. Berikut saya berikan perintah dan tahapan yang harus anda kerjakan untuk menyelesaikan tugas tahap 2. Tugas: Terapkan pola Model-View-Template (MVT)... Buatkan implementation plannya, jangan melakukan commit apapun secara mandiri."*
+6. *"Refactor seluruh berkas HTML identik agar extend template utama, lalu terapkan Create Form, Update Form, Data Deletion, JSON Data Delivery, dan tampilan hasil deserialisasi untuk satu bagian portofolio lain. Pastikan proyek dapat dijalankan tanpa error."*
