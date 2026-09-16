@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from main.forms import ExperienceForm
 from main.models import Experience, Project
 
 
@@ -213,3 +214,142 @@ class Tutorial3Test(TestCase):
 
         self.assertRedirects(response, reverse("main:show_projects"))
         self.assertFalse(Project.objects.filter(pk=self.project.id).exists())
+
+
+class ExperienceManagementTest(TestCase):
+    def setUp(self):
+        self.experience = Experience.objects.create(
+            title="Asisten Dosen PBP",
+            description="Mendampingi mahasiswa saat tutorial Django.",
+            category="part-time",
+            thumbnail="https://example.com/asdos.jpg",
+        )
+
+    def test_experience_form_contains_only_editable_data_fields(self):
+        self.assertEqual(
+            list(ExperienceForm.base_fields),
+            ["title", "description", "category", "thumbnail"],
+        )
+
+    def test_create_experience_page_extends_base_template(self):
+        response = self.client.get(reverse("main:create_experience"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "experience_form.html")
+        self.assertTemplateUsed(response, "base.html")
+        self.assertContains(response, "Tambah Experience")
+        self.assertContains(response, "csrfmiddlewaretoken")
+
+    def test_create_experience_with_valid_data(self):
+        response = self.client.post(
+            reverse("main:create_experience"),
+            {
+                "title": "Software Engineer Intern",
+                "description": "Mengembangkan fitur aplikasi web internal.",
+                "category": "internship",
+                "thumbnail": "https://example.com/internship.jpg",
+            },
+        )
+
+        self.assertRedirects(response, reverse("main:show_experience"))
+        self.assertTrue(
+            Experience.objects.filter(title="Software Engineer Intern").exists()
+        )
+
+    def test_create_experience_rejects_invalid_data(self):
+        response = self.client.post(
+            reverse("main:create_experience"),
+            {
+                "title": "",
+                "description": "Deskripsi tetap diisi.",
+                "category": "kategori-tidak-valid",
+                "thumbnail": "bukan-url-valid",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            Experience.objects.filter(description="Deskripsi tetap diisi.").exists()
+        )
+        self.assertContains(response, "This field is required")
+        self.assertContains(response, "Select a valid choice")
+        self.assertContains(response, "Enter a valid URL")
+
+    def test_update_experience_page_is_prefilled(self):
+        response = self.client.get(
+            reverse("main:update_experience", args=[self.experience.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "experience_form.html")
+        self.assertContains(response, "Ubah Experience")
+        self.assertContains(response, self.experience.title)
+        self.assertContains(response, self.experience.description)
+
+    def test_update_experience_with_valid_data(self):
+        response = self.client.post(
+            reverse("main:update_experience", args=[self.experience.id]),
+            {
+                "title": "Teaching Assistant PBP",
+                "description": "Mendampingi tutorial dan memberikan umpan balik.",
+                "category": "part-time",
+                "thumbnail": "https://example.com/teaching-assistant.jpg",
+            },
+        )
+
+        self.assertRedirects(response, reverse("main:show_experience"))
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Teaching Assistant PBP")
+        self.assertEqual(Experience.objects.count(), 1)
+
+    def test_delete_experience_rejects_get_request(self):
+        response = self.client.get(
+            reverse("main:delete_experience", args=[self.experience.id])
+        )
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(Experience.objects.filter(pk=self.experience.id).exists())
+
+    def test_delete_experience_with_post_request(self):
+        response = self.client.post(
+            reverse("main:delete_experience", args=[self.experience.id])
+        )
+
+        self.assertRedirects(response, reverse("main:show_experience"))
+        self.assertFalse(Experience.objects.filter(pk=self.experience.id).exists())
+
+    def test_experiences_json_endpoint_and_title_filter(self):
+        Experience.objects.create(
+            title="Volunteer Mentor",
+            description="Mengajar pemrograman dasar.",
+            category="volunteer",
+        )
+
+        response = self.client.get(
+            reverse("main:get_experiences_json"),
+            {"title": "mentor"},
+        )
+        payload = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+        self.assertEqual(len(payload), 1)
+        self.assertEqual(payload[0]["model"], "main.experience")
+        self.assertEqual(payload[0]["fields"]["title"], "Volunteer Mentor")
+
+    def test_experience_page_displays_deserialized_json_data(self):
+        Experience.objects.create(
+            title="Volunteer Mentor",
+            description="Mengajar pemrograman dasar.",
+            category="volunteer",
+        )
+
+        response = self.client.get(
+            reverse("main:show_experience"),
+            {"title": "Asisten"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.experience.title)
+        self.assertNotContains(response, "Volunteer Mentor")
+        self.assertIsInstance(response.context["experience_list"][0], Experience)
