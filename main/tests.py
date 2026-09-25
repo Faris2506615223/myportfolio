@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -119,6 +120,10 @@ class MainTest(TestCase):
 
 class Tutorial3Test(TestCase):
     def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username="admin_test",
+            password="adminpassword123",
+        )
         self.project = Project.objects.create(
             title="BPJSight",
             category="Web Portal • Healthcare",
@@ -128,6 +133,7 @@ class Tutorial3Test(TestCase):
         )
 
     def test_create_project_page(self):
+        self.client.login(username="admin_test", password="adminpassword123")
         response = self.client.get(reverse("main:create_project"))
 
         self.assertEqual(response.status_code, 200)
@@ -135,6 +141,7 @@ class Tutorial3Test(TestCase):
         self.assertContains(response, "Tambah Project")
 
     def test_create_project_with_valid_data(self):
+        self.client.login(username="admin_test", password="adminpassword123")
         response = self.client.post(
             reverse("main:create_project"),
             {
@@ -150,6 +157,7 @@ class Tutorial3Test(TestCase):
         self.assertTrue(Project.objects.filter(title="GarudaHacks").exists())
 
     def test_create_project_rejects_invalid_data(self):
+        self.client.login(username="admin_test", password="adminpassword123")
         response = self.client.post(
             reverse("main:create_project"),
             {
@@ -200,6 +208,7 @@ class Tutorial3Test(TestCase):
         self.assertNotContains(response, "PressPoint")
 
     def test_delete_project_rejects_get_request(self):
+        self.client.login(username="admin_test", password="adminpassword123")
         response = self.client.get(
             reverse("main:delete_project", args=[self.project.id])
         )
@@ -208,6 +217,7 @@ class Tutorial3Test(TestCase):
         self.assertTrue(Project.objects.filter(pk=self.project.id).exists())
 
     def test_delete_project_with_post_request(self):
+        self.client.login(username="admin_test", password="adminpassword123")
         response = self.client.post(
             reverse("main:delete_project", args=[self.project.id])
         )
@@ -353,3 +363,107 @@ class ExperienceManagementTest(TestCase):
         self.assertContains(response, self.experience.title)
         self.assertNotContains(response, "Volunteer Mentor")
         self.assertIsInstance(response.context["experience_list"][0], Experience)
+
+
+class Tutorial4Test(TestCase):
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username="admin_pbp",
+            password="adminpassword123",
+        )
+        self.regular_user = User.objects.create_user(
+            username="student_pbp",
+            password="studentpassword123",
+        )
+        self.project = Project.objects.create(
+            title="Katalog Buku Fasilkom",
+            category="Web App",
+            description="Aplikasi web katalog buku.",
+        )
+
+    def test_anonymous_user_redirected_from_create_project(self):
+        response = self.client.get(reverse("main:create_project"))
+        self.assertRedirects(response, f"/login/?next={reverse('main:create_project')}")
+
+    def test_anonymous_user_redirected_from_delete_project(self):
+        response = self.client.post(reverse("main:delete_project", args=[self.project.id]))
+        self.assertRedirects(response, f"/login/?next={reverse('main:delete_project', args=[self.project.id])}")
+
+    def test_regular_user_forbidden_from_create_project(self):
+        self.client.login(username="student_pbp", password="studentpassword123")
+        response = self.client.get(reverse("main:create_project"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_regular_user_forbidden_from_delete_project(self):
+        self.client.login(username="student_pbp", password="studentpassword123")
+        response = self.client.post(reverse("main:delete_project", args=[self.project.id]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_register_page_renders_and_creates_account(self):
+        get_response = self.client.get(reverse("main:register"))
+        self.assertEqual(get_response.status_code, 200)
+        self.assertTemplateUsed(get_response, "register.html")
+
+        post_response = self.client.post(
+            reverse("main:register"),
+            {
+                "username": "newuser123",
+                "password1": "ComplexPassword!987",
+                "password2": "ComplexPassword!987",
+            },
+        )
+        self.assertRedirects(post_response, reverse("main:login"))
+        self.assertTrue(User.objects.filter(username="newuser123").exists())
+
+    def test_login_user_sets_last_login_cookie(self):
+        get_response = self.client.get(reverse("main:login"))
+        self.assertEqual(get_response.status_code, 200)
+        self.assertTemplateUsed(get_response, "login.html")
+
+        post_response = self.client.post(
+            reverse("main:login"),
+            {
+                "username": "student_pbp",
+                "password": "studentpassword123",
+            },
+        )
+        self.assertRedirects(post_response, reverse("main:show_main"))
+        self.assertIn("last_login", post_response.cookies)
+
+    def test_logout_user_deletes_last_login_cookie(self):
+        self.client.login(username="student_pbp", password="studentpassword123")
+        response = self.client.get(reverse("main:logout"))
+        self.assertRedirects(response, reverse("main:show_main"))
+        self.assertEqual(response.cookies["last_login"].value, "")
+
+    def test_show_main_reads_last_login_cookie(self):
+        self.client.cookies["last_login"] = "2026-09-22 10:00:00"
+        response = self.client.get(reverse("main:show_main"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "2026-09-22 10:00:00")
+
+    def test_toggle_star_functionality(self):
+        # Anonymous user cannot star
+        anon_response = self.client.post(reverse("main:toggle_star", args=[self.project.id]))
+        self.assertRedirects(anon_response, f"/login/?next={reverse('main:toggle_star', args=[self.project.id])}")
+
+        # Regular user can star
+        self.client.login(username="student_pbp", password="studentpassword123")
+        star_response = self.client.post(reverse("main:toggle_star", args=[self.project.id]))
+        self.assertRedirects(star_response, reverse("main:show_projects"))
+        self.assertEqual(self.project.starred_by.count(), 1)
+        self.assertIn(self.regular_user, self.project.starred_by.all())
+
+        # Star again toggles it off (unstar)
+        unstar_response = self.client.post(reverse("main:toggle_star", args=[self.project.id]))
+        self.assertRedirects(unstar_response, reverse("main:show_projects"))
+        self.assertEqual(self.project.starred_by.count(), 0)
+
+    def test_get_projects_json_uses_natural_foreign_keys(self):
+        self.project.starred_by.add(self.regular_user)
+        response = self.client.get(reverse("main:get_projects_json"))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        target_project = next(p for p in data if p["pk"] == str(self.project.id))
+        self.assertEqual(target_project["fields"]["starred_by"], [["student_pbp"]])
+
