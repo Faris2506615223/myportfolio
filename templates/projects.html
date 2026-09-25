@@ -12,11 +12,13 @@
 
                 <div class="project-page-header">
                     <h1>Projects</h1>
-                    <a href="{% url 'main:create_project' %}"
-                       class="button project-add-button">
-                        <span aria-hidden="true">+</span>
-                        Tambah Project
-                    </a>
+                    {% if user.is_superuser %}
+                        <a href="{% url 'main:create_project' %}"
+                           class="button project-add-button">
+                            <span aria-hidden="true">+</span>
+                            Tambah Project
+                        </a>
+                    {% endif %}
                 </div>
 
                 <form method="get"
@@ -66,8 +68,12 @@
                                         </a>
                                     {% endif %}
 
-                                    {% url 'main:delete_project' project.id as delete_url %}
-                                    {% include "components/delete_modal.html" with modal_id=project.id item_type="Project" item_title=project.title delete_url=delete_url %}
+                                    {% include "components/project_star.html" with project=project %}
+
+                                    {% if user.is_superuser %}
+                                        {% url 'main:delete_project' project.id as delete_url %}
+                                        {% include "components/delete_modal.html" with modal_id=project.id item_type="Project" item_title=project.title delete_url=delete_url %}
+                                    {% endif %}
                                 </div>
                             </div>
                         </article>
