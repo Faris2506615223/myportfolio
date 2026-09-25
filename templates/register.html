@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block meta %}
+    <title>Register - {{ name }}</title>
+{% endblock meta %}
+
+{% block content %}
+<main>
+    <section class="project-page-section">
+        <div class="container project-form-container">
+            <p class="section-kicker">Pendaftaran Pengguna</p>
+            <h1>Buat Akun</h1>
+
+            <form method="post" action="{% url 'main:register' %}" class="project-form">
+                {% csrf_token %}
+
+                {% for error in form.non_field_errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-help">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="button">Daftar</button>
+            </form>
+
+            <p style="margin-top: 1.5rem; font-size: 0.95rem;">
+                Sudah punya akun? <a href="{% url 'main:login' %}" style="color: var(--accent); font-weight: 600;">Login di sini</a>.
+            </p>
+        </div>
+    </section>
+</main>
+{% endblock content %}

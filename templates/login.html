@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block meta %}
+    <title>Login - {{ name }}</title>
+{% endblock meta %}
+
+{% block content %}
+<main>
+    <section class="project-page-section">
+        <div class="container project-form-container">
+            <p class="section-kicker">Masuk ke Akun</p>
+            <h1>Login</h1>
+
+            {% for message in messages %}
+                <p class="form-message">{{ message }}</p>
+            {% endfor %}
+
+            <form method="post" action="{% url 'main:login' %}" class="project-form">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                {% for error in form.non_field_errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+
+                <button type="submit" class="button">Login</button>
+            </form>
+
+            <p style="margin-top: 1.5rem; font-size: 0.95rem;">
+                Belum punya akun? <a href="{% url 'main:register' %}" style="color: var(--accent); font-weight: 600;">Daftar di sini</a>.
+            </p>
+        </div>
+    </section>
+</main>
+{% endblock content %}
