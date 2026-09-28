@@ -1,281 +1,252 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block meta %}
-    <title>{{ name }} - Portofolio</title>
+    <title>Farizz's Portfolio</title>
+    <meta name="description" content="Personal portfolio of Faris Salman, a creative technologist creating calm, minimal digital experiences inspired by nature.">
 {% endblock meta %}
 
-{% block content %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock extra_head %}
 
-    <main>
-        <section class="hero" id="profile">
-            <div class="container hero-grid">
-                <div class="hero-identity">
-                    <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
-                    <h1>{{ name }}</h1>
-                </div>
-                <div class="hero-photo">
-                    <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/faris.jpg" alt="Photo of {{ name }}">
-                </div>
-                <div class="hero-details">
-                    <p class="bio">{{ bio }}</p>
-                    <dl class="meta-list">
-                        <div class="meta-row">
+{% block body_class %}landing-page{% endblock body_class %}
+{% block header %}{% endblock header %}
+
+{% block content %}
+    <div class="noise-overlay" aria-hidden="true"></div>
+    <div class="scroll-progress-bar" id="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"><span class="cursor-label"></span></div>
+
+    <div class="nature-entrance" id="entrance-gate">
+        <div class="entrance-sky"></div>
+        <div class="entrance-mountain entrance-mountain--back" aria-hidden="true">
+            <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path d="M0,224 L180,180 L360,240 L540,160 L720,260 L900,190 L1080,280 L1260,200 L1440,240 L1440,320 L0,320 Z" fill="#5D6B57" opacity=".3"></path>
+            </svg>
+        </div>
+        <div class="entrance-mountain entrance-mountain--front" aria-hidden="true">
+            <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+                <path d="M0,280 L240,220 L480,290 L720,210 L960,280 L1200,230 L1440,290 L1440,320 L0,320 Z" fill="#5D6B57" opacity=".6"></path>
+            </svg>
+        </div>
+        <div class="entrance-mist"></div>
+        <div class="entrance-prompt">
+            <span class="prompt-italic">Welcome. Take a deep breath.</span>
+            <button class="btn btn-outline" id="enter-btn" type="button">Explore Quietly</button>
+        </div>
+    </div>
+
+    <header class="main-header" id="navbar">
+        <div class="landing-container header-wrap">
+            <a href="#hero" class="nav-logo">Faris</a>
+            <nav class="nav-links" id="nav-links" aria-label="Main navigation">
+                <a href="#about" class="nav-item">About Me</a>
+                <a href="{% url 'main:show_experience' %}" class="nav-item">Experience</a>
+                <a href="{% url 'main:show_projects' %}" class="nav-item">Projects</a>
+                {% if user.is_authenticated %}
+                    <span class="nav-user">{{ user.username }}</span>
+                    <a href="{% url 'main:logout' %}" class="nav-item">Logout</a>
+                {% else %}
+                    <a href="{% url 'main:login' %}" class="nav-item">Login</a>
+                    <a href="{% url 'main:register' %}" class="nav-item">Register</a>
+                {% endif %}
+            </nav>
+            <div class="visually-hidden">
+                <span>Last login: {{ last_login }}</span>
+            </div>
+            <button class="mobile-nav-toggle" id="mobile-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section class="hero-section" id="hero">
+            <div class="hero-ambient-bg" aria-hidden="true">
+                <video autoplay muted loop playsinline class="ambient-video">
+                    <source src="https://cdn.pixabay.com/video/2020/02/20/32616-393275066_large.mp4" type="video/mp4">
+                </video>
+                <div class="hero-overlay"></div>
+            </div>
+            <div class="hero-parallax-layer" aria-hidden="true">
+                <img src="{% static 'img/Agung.webp' %}" alt="" class="hero-parallax-img">
+            </div>
+            <div class="landing-container hero-content">
+                <div class="hero-intro-layout">
+                    <div class="hero-text-wrapper">
+                        <h1 class="hero-name reveal-text">Faris Salman</h1>
+                        <p class="hero-tagline reveal-text">Exploring Ideas Through Design, Technology, and Creativity</p>
+                    </div>
+                    <dl class="hero-meta reveal-text" aria-label="Profile details">
+                        <div class="hero-meta-item">
                             <dt>NPM</dt>
                             <dd>{{ npm }}</dd>
                         </div>
-                        <div class="meta-row">
+                        <div class="hero-meta-item">
                             <dt>Program</dt>
                             <dd>{{ study_program }}</dd>
                         </div>
-                        <div class="meta-row">
+                        <div class="hero-meta-item">
                             <dt>Sesi Terakhir Login</dt>
                             <dd>{{ last_login }}</dd>
                         </div>
                     </dl>
-                    <div class="social-links">
-                        <a href="https://github.com/Faris2506615223" class="social-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-                        <a href="https://www.linkedin.com/in/faris-salman-azhari-78bb06416/" class="social-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-                        <a href="mailto:faris.salman@ui.ac.id" class="social-link">Email</a>
+                </div>
+                <div class="scroll-hint" aria-hidden="true">
+                    <span class="scroll-hint-text">Scroll Down</span>
+                    <div class="scroll-hint-line"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section" id="about">
+            <div class="decorative-leaf" aria-hidden="true">
+                <svg width="100" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+                </svg>
+            </div>
+            <div class="landing-container">
+                <div class="about-grid">
+                    <div class="about-intro-row">
+                        <div class="about-img-col fade-up-el">
+                            <div class="portrait-container">
+                                <img src="{% static 'img/faris.jpg' %}" alt="Faris Salman" class="portrait-img" loading="lazy">
+                                <div class="portrait-decoration"></div>
+                            </div>
+                        </div>
+                        <div class="about-intro-text fade-up-el">
+                            <div class="about-header-wrap">
+                                <span class="about-pre-title">Get to know me</span>
+                                <h2 class="section-title">The Path Less Traveled</h2>
+                            </div>
+                            <p class="lead-text">“I believe that great designs, like God's best creation, are built quietly, cleanly, and with careful intent.”</p>
+                        </div>
+                    </div>
+
+                    <div class="about-text-col fade-up-el">
+                        <div class="about-desktop-header">
+                            <div class="about-header-wrap">
+                                <span class="about-pre-title">Get to know me</span>
+                                <h2 class="section-title">The Path Less Traveled</h2>
+                            </div>
+                            <div class="editorial-block">
+                                <p class="lead-text">“I believe that great designs, like God's best creation, are built quietly, cleanly, and with careful intent.”</p>
+                            </div>
+                        </div>
+                        <div class="editorial-block">
+                            <h4 class="editorial-subtitle">Personal Story</h4>
+                            <p>Sebagai seseorang dengan tipe kepribadian <em>ENTJ</em>, saya menghargai kesederhanaan, keterbacaan, dan perhatian pada detail yang mudah terlewat. Dengan komunikasi sebagai langkah utama dalam bertindak, perjalanan saya selalu terinspirasi oleh “bagaimana orang lain melihat, tanpa memandang sisi negatif sama sekali?”. Maka dari itu, saya selalu berusaha untuk tidak terhenti pada satu pandangan, dengan <em>mindset</em> kegagalan berupa kesuksesan yang tertunda.</p>
+                        </div>
+                        <div class="editorial-block">
+                            <h4 class="editorial-subtitle">Core Values</h4>
+                            <p>Sebagai seorang <em>technologist</em>, saya menggabungkan struktur teknologi yang kokoh dengan estetika visual yang tenang. Dengan <em>eager to learn</em> yang tinggi, sangat mudah bagi diri saya untuk beradaptasi terhadap lingkungan dan pengetahuan baru. Satu lagi, saya mencintai matematika dan logika.</p>
+                        </div>
+                        <div class="editorial-block">
+                            <h4 class="editorial-subtitle">The Journey</h4>
+                            <p>nanti aja abis wisuda dari pacil</p>
+                        </div>
+                        <div class="editorial-block skills-block">
+                            <h4 class="editorial-subtitle">Interests</h4>
+                            <div class="skills-chips">
+                                <span class="skill-chip">Web Development</span>
+                                <span class="skill-chip">Data Analyst</span>
+                                <span class="skill-chip">Software Engineer</span>
+                                <span class="skill-chip">Leadership</span>
+                                <span class="skill-chip">Yap</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="about-desktop-img-col fade-up-el">
+                        <div class="portrait-container">
+                            <img src="{% static 'img/faris.jpg' %}" alt="Faris Salman" class="portrait-img" loading="lazy">
+                            <div class="portrait-decoration"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- about me -->
-        <section class="know-me" id="know-me">
-            <div class="container know-me-grid">
-
-                <div class="know-me-left">
-                    <p class="know-me-label">Get to Know Me</p>
-                    <h2 class="know-me-heading">The Path Less Traveled</h2>
-                    <blockquote class="know-me-quote">
-                        "I believe that great designs, like God's best creation, are built quietly, cleanly, and with careful intent."
-                    </blockquote>
-                </div>
-
-                <div class="cards-stack">
-                    <div class="info-card">
-                        <p class="info-card-title">Origin</p>
-                        <p class="info-card-text">Based in Jakarta, Indonesia, with a background in digital product design and web development, turning complex ideas into clean, functional web experiences.</p>
-                    </div>
-                    <div class="info-card">
-                        <p class="info-card-title">Interests</p>
-                        <p class="info-card-text">Passionate about modern frontend frameworks, clean UI design, emerging AI tech, and exploring how seamless interaction design can elevate user engagement.</p>
-                    </div>
-                    <div class="info-card">
-                        <p class="info-card-title">Goal</p>
-                        <p class="info-card-text">To build intuitive, high-performance digital products that solve real-world problems while constantly refining my technical craftsmanship.</p>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- passion -->
         <section class="works-section" id="works">
-            <div class="container">
-                
+            <div class="landing-container">
                 <div class="works-header fade-up-el">
                     <h2 class="section-title">Passion</h2>
-                    <p class="section-subtitle">A curated collection of my tech expertise</p>
+                    <p class="section-subtitle">A curated collection of my tech expertise.</p>
                 </div>
 
-                <div class="works-grid" id="passion-grid">
-
-                    <div class="tech-stack-section" id="tech-stack-panel" data-category="tech">
-
-                        <div class="marquee-track-wrap">
-                            <div class="marquee-track marquee-left">
-                                <div class="marquee-inner">
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg" alt="HTML5" loading="lazy">
-                                            <span class="tech-card-name">HTML5</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/css3/css3-original.svg" alt="CSS3" loading="lazy">
-                                            <span class="tech-card-name">CSS3</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" alt="JavaScript" loading="lazy">
-                                            <span class="tech-card-name">JavaScript</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitejs/vitejs-original.svg" alt="Vite" loading="lazy">
-                                            <span class="tech-card-name">Vite</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" alt="Python" loading="lazy">
-                                            <span class="tech-card-name">Python</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" alt="Java" loading="lazy">
-                                            <span class="tech-card-name">Java</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg" alt="HTML5" loading="lazy">
-                                            <span class="tech-card-name">HTML5</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/css3/css3-original.svg" alt="CSS3" loading="lazy">
-                                            <span class="tech-card-name">CSS3</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" alt="JavaScript" loading="lazy">
-                                            <span class="tech-card-name">JavaScript</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitejs/vitejs-original.svg" alt="Vite" loading="lazy">
-                                            <span class="tech-card-name">Vite</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" alt="Python" loading="lazy">
-                                            <span class="tech-card-name">Python</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" alt="Java" loading="lazy">
-                                            <span class="tech-card-name">Java</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="marquee-track-wrap">
-                            <div class="marquee-track marquee-right">
-                                <div class="marquee-inner">
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg" alt="C" loading="lazy">
-                                            <span class="tech-card-name">C</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" alt="C++" loading="lazy">
-                                            <span class="tech-card-name">C++</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" alt="Git" loading="lazy">
-                                            <span class="tech-card-name">Git</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt="Figma" loading="lazy">
-                                            <span class="tech-card-name">Figma</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg" alt="VS Code" loading="lazy">
-                                            <span class="tech-card-name">VS Code</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" alt="GitHub" loading="lazy">
-                                            <span class="tech-card-name">GitHub</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.worldvectorlogo.com/logos/nodejs-icon.svg" alt="Node.js" loading="lazy">
-                                            <span class="tech-card-name">Node.js</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg" alt="C" loading="lazy">
-                                            <span class="tech-card-name">C</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" alt="C++" loading="lazy">
-                                            <span class="tech-card-name">C++</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" alt="Git" loading="lazy">
-                                            <span class="tech-card-name">Git</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt="Figma" loading="lazy">
-                                            <span class="tech-card-name">Figma</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg" alt="VS Code" loading="lazy">
-                                            <span class="tech-card-name">VS Code</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" alt="GitHub" loading="lazy">
-                                            <span class="tech-card-name">GitHub</span>
-                                        </div>
-                                    </div>
-                                    <div class="tech-card">
-                                        <div class="tech-card-inner">
-                                            <img src="https://cdn.worldvectorlogo.com/logos/nodejs-icon.svg" alt="Node.js" loading="lazy">
-                                            <span class="tech-card-name">Node.js</span>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
+                <div class="tech-stack-section" id="tech-stack-panel">
+                    <div class="marquee-track-wrap">
+                        <div class="marquee-track marquee-left"><div class="marquee-inner">
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg" alt="HTML5" loading="lazy"><span class="tech-card-name">HTML5</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/css3/css3-original.svg" alt="CSS3" loading="lazy"><span class="tech-card-name">CSS3</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" alt="JavaScript" loading="lazy"><span class="tech-card-name">JavaScript</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitejs/vitejs-original.svg" alt="Vite" loading="lazy"><span class="tech-card-name">Vite</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" alt="Python" loading="lazy"><span class="tech-card-name">Python</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" alt="Java" loading="lazy"><span class="tech-card-name">Java</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg" alt=""><span class="tech-card-name">HTML5</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/css3/css3-original.svg" alt=""><span class="tech-card-name">CSS3</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" alt=""><span class="tech-card-name">JavaScript</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vitejs/vitejs-original.svg" alt=""><span class="tech-card-name">Vite</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" alt=""><span class="tech-card-name">Python</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" alt=""><span class="tech-card-name">Java</span></div></div>
+                        </div></div>
                     </div>
-
+                    <div class="marquee-track-wrap">
+                        <div class="marquee-track marquee-right"><div class="marquee-inner">
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg" alt="C" loading="lazy"><span class="tech-card-name">C</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" alt="C++" loading="lazy"><span class="tech-card-name">C++</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" alt="Git" loading="lazy"><span class="tech-card-name">Git</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt="Figma" loading="lazy"><span class="tech-card-name">Figma</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg" alt="VS Code" loading="lazy"><span class="tech-card-name">VS Code</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" alt="GitHub" loading="lazy"><span class="tech-card-name">GitHub</span></div></div>
+                            <div class="tech-card"><div class="tech-card-inner"><img src="https://cdn.worldvectorlogo.com/logos/nodejs-icon.svg" alt="Node.js" loading="lazy"><span class="tech-card-name">Node.js</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg" alt=""><span class="tech-card-name">C</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" alt=""><span class="tech-card-name">C++</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" alt=""><span class="tech-card-name">Git</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt=""><span class="tech-card-name">Figma</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg" alt=""><span class="tech-card-name">VS Code</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" alt=""><span class="tech-card-name">GitHub</span></div></div>
+                            <div class="tech-card" aria-hidden="true"><div class="tech-card-inner"><img src="https://cdn.worldvectorlogo.com/logos/nodejs-icon.svg" alt=""><span class="tech-card-name">Node.js</span></div></div>
+                        </div></div>
+                    </div>
                 </div>
 
             </div>
         </section>
     </main>
 
+    <footer class="contact-section" id="contacts">
+        <div class="landing-container">
+            <div class="contact-info-panel fade-up-el">
+                <span class="contact-pre">Hola, amigos</span>
+                <h2 class="contact-title">Let's create something meaningful together.</h2>
+                <div class="contact-links">
+                    <div class="social-links">
+                        <a href="https://github.com/Ambaturizz" target="_blank" rel="noopener noreferrer" class="social-icon-link" aria-label="GitHub">
+                            <svg viewBox="0 0 72 72" fill="none" aria-hidden="true"><rect width="72" height="72" rx="14" fill="#24292F"/><path fill="white" fill-rule="evenodd" d="M36 14C23.85 14 14 23.85 14 36c0 9.72 6.3 17.97 15.04 20.88 1.1.2 1.5-.48 1.5-1.06 0-.52-.02-2.26-.03-4.1-6.12 1.33-7.41-2.6-7.41-2.6-1-2.54-2.44-3.22-2.44-3.22-2-.1.15-1.96.15-1.96 2.2.15 3.36 2.26 3.36 2.26 1.96 3.36 5.14 2.39 6.39 1.83.2-1.42.77-2.39 1.39-2.94-4.88-.56-10.02-2.44-10.02-10.87 0-2.4.86-4.36 2.26-5.9-.23-.55-.98-2.79.21-5.82 0 0 1.85-.59 6.05 2.25A21 21 0 0 1 36 24.13a21 21 0 0 1 5.51.74c4.2-2.84 6.04-2.25 6.04-2.25 1.2 3.03.45 5.27.22 5.82 1.41 1.54 2.26 3.5 2.26 5.9 0 8.45-5.15 10.3-10.04 10.85.79.68 1.49 2.02 1.49 4.07 0 2.94-.03 5.3-.03 6.03 0 .59.4 1.27 1.51 1.05A22 22 0 0 0 58 36c0-12.15-9.85-22-22-22Z" clip-rule="evenodd"/></svg>
+                            <span class="social-icon-label">GitHub</span>
+                        </a>
+                        <a href="https://www.linkedin.com/in/faris-salman-azhari-78bb06416/" target="_blank" rel="noopener noreferrer" class="social-icon-link" aria-label="LinkedIn">
+                            <svg viewBox="0 0 72 72" fill="none" aria-hidden="true"><rect width="72" height="72" rx="12" fill="#0A66C2"/><path d="M20.5 28.5H27.5V51.5H20.5V28.5Z" fill="white"/><circle cx="24" cy="21" r="4" fill="white"/><path d="M31.5 28.5H38V31.8C39.2 29.8 41.8 28 45.5 28C52 28 53.5 32 53.5 38V51.5H46.5V39.5C46.5 36.5 46 34 43 34C40 34 38.5 36.2 38.5 39.5V51.5H31.5V28.5Z" fill="white"/></svg>
+                            <span class="social-icon-label">LinkedIn</span>
+                        </a>
+                        <a href="mailto:faris.salman@ui.ac.id" class="social-icon-link" aria-label="Email Faris Salman">
+                            <svg viewBox="0 0 72 72" fill="none" aria-hidden="true"><rect width="72" height="72" rx="14" fill="#5D6B57"/><rect x="15" y="21" width="42" height="30" rx="4" stroke="white" stroke-width="3"/><path d="m17 24 19 15 19-15" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span class="social-icon-label">Email</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
 {% endblock content %}
+
+{% block footer %}{% endblock footer %}
+{% block extra_scripts %}<script src="{% static 'js/landing.js' %}" defer></script>{% endblock extra_scripts %}

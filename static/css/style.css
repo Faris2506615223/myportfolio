@@ -69,6 +69,9 @@ h1, .brand {
 
 .site-header {
     border-bottom: 1px solid var(--line);
+    position: relative;
+    z-index: 100;
+    background-color: var(--paper);
 }
 
 .site-header .container {
@@ -76,6 +79,7 @@ h1, .brand {
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
+    position: relative;
 }
 
 .brand {
@@ -94,6 +98,40 @@ h1, .brand {
     color: var(--ink);
     text-decoration: none;
     font-size: 0.95rem;
+}
+
+.site-nav-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: transparent;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.site-nav-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--ink);
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.site-nav-toggle.active span:first-child {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.site-nav-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.site-nav-toggle.active span:last-child {
+    transform: translateY(-7px) rotate(-45deg);
 }
 
 .hero {
@@ -1144,5 +1182,149 @@ h1, .brand {
     border: 1px solid #86b68d;
     color: #285c31;
     border-radius: var(--radius);
+}
+
+/* Responsive layout for the Django pages */
+@media (max-width: 760px) {
+    .container {
+        width: 100%;
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .site-header .container {
+        padding: 0.8rem 1rem;
+    }
+
+    .site-nav-toggle {
+        display: flex;
+    }
+
+    .site-header .site-navigation {
+        position: absolute;
+        top: 100%;
+        right: 1rem;
+        left: 1rem;
+        display: flex;
+        visibility: hidden;
+        max-height: calc(100vh - 80px);
+        padding: 0.6rem;
+        overflow-y: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--paper);
+        box-shadow: 0 14px 32px rgba(28, 25, 23, 0.14);
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+    }
+
+    .site-header .site-navigation.active {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .site-header .site-navigation a,
+    .site-header .site-navigation .nav-user {
+        width: 100%;
+        padding: 0.8rem 0.75rem;
+        border-radius: var(--radius);
+    }
+
+    .site-header .site-navigation a:hover {
+        background: rgba(217, 93, 57, 0.08);
+    }
+
+    .experience-section,
+    .project-page-section,
+    .project-detail-section {
+        padding-top: 2.5rem;
+        padding-bottom: 3rem;
+    }
+
+    .experience-grid,
+    .project-page-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .project-page-thumb {
+        height: clamp(170px, 55vw, 240px);
+    }
+
+    .experience-actions,
+    .project-card-actions,
+    .form-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .experience-actions .button,
+    .project-card-actions > a,
+    .project-card-actions > .button,
+    .project-card-actions .star-form,
+    .project-card-actions .star-form .button,
+    .form-actions .button,
+    .btn-project-cta {
+        width: 100%;
+        text-align: center;
+    }
+
+    .button {
+        min-height: 44px;
+    }
+
+    .project-detail-content {
+        padding: 1.25rem;
+    }
+
+    .project-detail-hero-img {
+        max-height: none;
+        aspect-ratio: 16 / 10;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select,
+    .project-search__input {
+        min-height: 46px;
+        font-size: 16px;
+    }
+
+    .form-help,
+    .form-error,
+    .message {
+        overflow-wrap: anywhere;
+    }
+
+    .site-footer {
+        padding: 1.25rem 1rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 380px) {
+    .brand {
+        font-size: 1.15rem;
+    }
+
+    .experience-card,
+    .project-page-body,
+    .project-detail-content {
+        padding: 1rem;
+    }
+
+    .experience-thumbnail {
+        width: calc(100% + 2rem);
+        margin: -1rem -1rem 1rem;
+    }
+
+    .project-page-section h1,
+    .experience-section h1 {
+        font-size: 1.75rem;
+    }
 }
 

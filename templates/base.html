@@ -8,15 +8,26 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Lora:ital,wght@0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock extra_head %}
     {% block meta %}
         <title>{{ name }} - Portofolio</title>
     {% endblock meta %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock body_class %}">
+    {% block header %}
     <header class="site-header">
         <div class="container">
             <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
-            <nav>
+            <button class="site-nav-toggle"
+                    type="button"
+                    aria-label="Buka navigasi"
+                    aria-expanded="false"
+                    aria-controls="site-navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="site-navigation" id="site-navigation">
                 <a href="{% url 'main:show_main' %}">Profile</a>
                 <a href="{% url 'main:show_experience' %}">Experience</a>
                 <a href="{% url 'main:show_projects' %}">Projects</a>
@@ -30,6 +41,7 @@
             </nav>
         </div>
     </header>
+    {% endblock header %}
 
     {% if messages %}
         <div class="container message-list" aria-live="polite">
@@ -41,10 +53,14 @@
 
     {% block content %}{% endblock content %}
 
+    {% block footer %}
     <footer class="site-footer">
         <div class="container">
             <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
+    {% endblock footer %}
+    <script src="{% static 'js/site.js' %}" defer></script>
+    {% block extra_scripts %}{% endblock extra_scripts %}
 </body>
 </html>
