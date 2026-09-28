@@ -637,10 +637,14 @@ h1, .brand {
 
 .experience-thumbnail {
     width: calc(100% + 2.5rem);
-    height: 160px;
+    height: auto;
+    aspect-ratio: 16 / 9;
     margin: -1.25rem -1.25rem 1.25rem;
+    padding: 0.75rem;
     border-bottom: 1px solid var(--line);
-    object-fit: cover;
+    background: linear-gradient(145deg, #f3eee6, #ebe4d9);
+    object-fit: contain;
+    object-position: center;
 }
 
 .experience-category {
@@ -1249,6 +1253,12 @@ h1, .brand {
     .experience-grid,
     .project-page-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .experience-thumbnail {
+        max-height: 260px;
+        aspect-ratio: 16 / 10;
+        padding: 0.6rem;
     }
 
     .project-page-thumb {
