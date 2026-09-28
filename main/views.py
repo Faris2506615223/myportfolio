@@ -4,6 +4,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -46,6 +47,9 @@ def show_experience(request):
 
 @login_required(login_url="/login/")
 def create_experience(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     if request.method == "POST":
         form = ExperienceForm(request.POST)
 
@@ -68,6 +72,9 @@ def create_experience(request):
 
 @login_required(login_url="/login/")
 def update_experience(request, id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     experience = get_object_or_404(Experience, pk=id)
 
     if request.method == "POST":
@@ -93,6 +100,9 @@ def update_experience(request, id):
 @require_POST
 @login_required(login_url="/login/")
 def delete_experience(request, id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     experience = get_object_or_404(Experience, pk=id)
     experience.delete()
     messages.success(request, "Pengalaman berhasil dihapus.")
@@ -128,6 +138,9 @@ def show_projects(request):
 
 @login_required(login_url="/login/")
 def create_project(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     if request.method == "POST":
         form = ProjectForm(request.POST)
 
@@ -183,6 +196,9 @@ def get_projects_xml(request):
 @require_POST
 @login_required(login_url="/login/")
 def delete_project(request, id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     project = get_object_or_404(Project, pk=id)
     project.delete()
     messages.success(request, "Project berhasil dihapus.")

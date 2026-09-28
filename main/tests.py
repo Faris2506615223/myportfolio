@@ -228,12 +228,16 @@ class Tutorial3Test(TestCase):
 
 class ExperienceManagementTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="experience_editor",
+        self.user = User.objects.create_superuser(
+            username="experience_admin",
             password="experiencepassword123",
         )
+        self.regular_user = User.objects.create_user(
+            username="experience_viewer",
+            password="viewerpassword123",
+        )
         self.client.login(
-            username="experience_editor",
+            username="experience_admin",
             password="experiencepassword123",
         )
         self.experience = Experience.objects.create(
@@ -267,6 +271,70 @@ class ExperienceManagementTest(TestCase):
             f"/login/?next={reverse('main:delete_experience', args=[self.experience.id])}",
         )
         self.assertTrue(Experience.objects.filter(pk=self.experience.id).exists())
+
+    def test_regular_user_forbidden_from_experience_mutations(self):
+        self.client.logout()
+        self.client.login(
+            username="experience_viewer",
+            password="viewerpassword123",
+        )
+
+        create_response = self.client.get(reverse("main:create_experience"))
+        update_response = self.client.get(
+            reverse("main:update_experience", args=[self.experience.id])
+        )
+        create_post_response = self.client.post(
+            reverse("main:create_experience"),
+            {
+                "title": "Unauthorized Experience",
+                "description": "Data ini tidak boleh tersimpan.",
+                "category": "internship",
+                "thumbnail": "",
+            },
+        )
+        update_post_response = self.client.post(
+            reverse("main:update_experience", args=[self.experience.id]),
+            {
+                "title": "Unauthorized Update",
+                "description": "Data ini tidak boleh berubah.",
+                "category": "research",
+                "thumbnail": "",
+            },
+        )
+        delete_response = self.client.post(
+            reverse("main:delete_experience", args=[self.experience.id])
+        )
+
+        self.assertEqual(create_response.status_code, 403)
+        self.assertEqual(update_response.status_code, 403)
+        self.assertEqual(create_post_response.status_code, 403)
+        self.assertEqual(update_post_response.status_code, 403)
+        self.assertEqual(delete_response.status_code, 403)
+        self.assertTrue(Experience.objects.filter(pk=self.experience.id).exists())
+        self.assertFalse(
+            Experience.objects.filter(title="Unauthorized Experience").exists()
+        )
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Asisten Dosen PBP")
+
+    def test_regular_user_does_not_see_experience_crud_controls(self):
+        self.client.logout()
+        self.client.login(
+            username="experience_viewer",
+            password="viewerpassword123",
+        )
+
+        response = self.client.get(reverse("main:show_experience"))
+
+        self.assertNotContains(response, reverse("main:create_experience"))
+        self.assertNotContains(
+            response,
+            reverse("main:update_experience", args=[self.experience.id]),
+        )
+        self.assertNotContains(
+            response,
+            reverse("main:delete_experience", args=[self.experience.id]),
+        )
 
     def test_experience_form_contains_only_editable_data_fields(self):
         self.assertEqual(
@@ -422,17 +490,44 @@ class Tutorial4Test(TestCase):
         response = self.client.post(reverse("main:delete_project", args=[self.project.id]))
         self.assertRedirects(response, f"/login/?next={reverse('main:delete_project', args=[self.project.id])}")
 
-    def test_regular_user_can_open_create_project(self):
+    def test_regular_user_forbidden_from_create_project(self):
         self.client.login(username="student_pbp", password="studentpassword123")
-        response = self.client.get(reverse("main:create_project"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "projects_form.html")
+        get_response = self.client.get(reverse("main:create_project"))
+        post_response = self.client.post(
+            reverse("main:create_project"),
+            {
+                "title": "Unauthorized Project",
+                "category": "Web App",
+                "description": "Data ini tidak boleh tersimpan.",
+                "thumbnail": "",
+                "project_url": "",
+            },
+        )
 
-    def test_regular_user_can_delete_project(self):
+        self.assertEqual(get_response.status_code, 403)
+        self.assertEqual(post_response.status_code, 403)
+        self.assertFalse(Project.objects.filter(title="Unauthorized Project").exists())
+
+    def test_regular_user_forbidden_from_delete_project(self):
         self.client.login(username="student_pbp", password="studentpassword123")
         response = self.client.post(reverse("main:delete_project", args=[self.project.id]))
-        self.assertRedirects(response, reverse("main:show_projects"))
-        self.assertFalse(Project.objects.filter(pk=self.project.id).exists())
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Project.objects.filter(pk=self.project.id).exists())
+
+    def test_regular_user_sees_star_but_not_project_crud_controls(self):
+        self.client.login(username="student_pbp", password="studentpassword123")
+
+        response = self.client.get(reverse("main:show_projects"))
+
+        self.assertContains(
+            response,
+            reverse("main:toggle_star", args=[self.project.id]),
+        )
+        self.assertNotContains(response, reverse("main:create_project"))
+        self.assertNotContains(
+            response,
+            reverse("main:delete_project", args=[self.project.id]),
+        )
 
     def test_register_page_renders_and_creates_account(self):
         get_response = self.client.get(reverse("main:register"))
