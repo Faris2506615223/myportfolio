@@ -1,5 +1,5 @@
-from django.contrib.auth.models import User
-from django.test import TestCase
+from django.contrib.auth.models import Group, User
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -464,6 +464,270 @@ class ExperienceManagementTest(TestCase):
         self.assertContains(response, self.experience.title)
         self.assertNotContains(response, "Volunteer Mentor")
         self.assertIsInstance(response.context["experience_list"][0], Experience)
+
+
+class Assignment4Test(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_superuser(
+            username="portfolio_owner",
+            password="ownerpassword123",
+        )
+        self.regular_user = User.objects.create_user(
+            username="portfolio_reader",
+            password="readerpassword123",
+        )
+        self.editor = User.objects.create_user(
+            username="portfolio_editor",
+            password="editorpassword123",
+        )
+        self.editor_group, self.editor_group_created = Group.objects.get_or_create(
+            name="Editor"
+        )
+        self.editor.groups.add(self.editor_group)
+        self.experience = Experience.objects.create(
+            title="Software Engineer Intern",
+            description="Mengembangkan fitur aplikasi internal.",
+            category="internship",
+            thumbnail="https://example.com/internship.jpg",
+        )
+
+    def test_editor_group_is_provisioned_by_migration(self):
+        self.assertFalse(self.editor_group_created)
+
+    def test_public_can_read_but_anonymous_mutations_redirect_to_login(self):
+        list_response = self.client.get(reverse("main:show_experience"))
+        api_response = self.client.get(reverse("main:get_experiences_json"))
+        create_response = self.client.get(reverse("main:create_experience"))
+        update_response = self.client.get(
+            reverse("main:update_experience", args=[self.experience.id])
+        )
+        delete_response = self.client.post(
+            reverse("main:delete_experience", args=[self.experience.id])
+        )
+        star_response = self.client.post(
+            reverse("main:toggle_experience_star", args=[self.experience.id])
+        )
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(api_response.status_code, 200)
+        self.assertRedirects(
+            create_response,
+            f"/login/?next={reverse('main:create_experience')}",
+        )
+        self.assertRedirects(
+            update_response,
+            f"/login/?next={reverse('main:update_experience', args=[self.experience.id])}",
+        )
+        self.assertRedirects(
+            delete_response,
+            f"/login/?next={reverse('main:delete_experience', args=[self.experience.id])}",
+        )
+        self.assertRedirects(
+            star_response,
+            f"/login/?next={reverse('main:toggle_experience_star', args=[self.experience.id])}",
+        )
+
+    def test_regular_user_cannot_create_update_or_delete_experience(self):
+        self.client.force_login(self.regular_user)
+        create_response = self.client.post(
+            reverse("main:create_experience"),
+            {
+                "title": "Unauthorized Create",
+                "description": "Tidak boleh tersimpan.",
+                "category": "research",
+                "thumbnail": "",
+            },
+        )
+        update_response = self.client.post(
+            reverse("main:update_experience", args=[self.experience.id]),
+            {
+                "title": "Unauthorized Update",
+                "description": "Tidak boleh berubah.",
+                "category": "research",
+                "thumbnail": "",
+            },
+        )
+        delete_response = self.client.post(
+            reverse("main:delete_experience", args=[self.experience.id])
+        )
+
+        self.assertEqual(create_response.status_code, 403)
+        self.assertEqual(update_response.status_code, 403)
+        self.assertEqual(delete_response.status_code, 403)
+        self.assertFalse(
+            Experience.objects.filter(title="Unauthorized Create").exists()
+        )
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Software Engineer Intern")
+
+    def test_editor_can_update_but_cannot_create_or_delete_experience(self):
+        self.client.force_login(self.editor)
+        create_response = self.client.get(reverse("main:create_experience"))
+        create_post_response = self.client.post(
+            reverse("main:create_experience"),
+            {
+                "title": "Editor Cannot Create",
+                "description": "Tidak boleh tersimpan.",
+                "category": "research",
+                "thumbnail": "",
+            },
+        )
+        update_page_response = self.client.get(
+            reverse("main:update_experience", args=[self.experience.id])
+        )
+        update_response = self.client.post(
+            reverse("main:update_experience", args=[self.experience.id]),
+            {
+                "title": "Software Engineer",
+                "description": "Memperbarui pengalaman sebagai editor.",
+                "category": "full-time",
+                "thumbnail": "https://example.com/software-engineer.jpg",
+            },
+        )
+        delete_response = self.client.post(
+            reverse("main:delete_experience", args=[self.experience.id])
+        )
+
+        self.assertEqual(create_response.status_code, 403)
+        self.assertEqual(create_post_response.status_code, 403)
+        self.assertEqual(update_page_response.status_code, 200)
+        self.assertRedirects(update_response, reverse("main:show_experience"))
+        self.assertEqual(delete_response.status_code, 403)
+        self.assertFalse(
+            Experience.objects.filter(title="Editor Cannot Create").exists()
+        )
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Software Engineer")
+
+    def test_experience_controls_follow_the_four_role_matrix(self):
+        create_url = reverse("main:create_experience")
+        update_url = reverse(
+            "main:update_experience",
+            args=[self.experience.id],
+        )
+        delete_url = reverse(
+            "main:delete_experience",
+            args=[self.experience.id],
+        )
+        star_url = reverse(
+            "main:toggle_experience_star",
+            args=[self.experience.id],
+        )
+
+        anonymous_response = self.client.get(reverse("main:show_experience"))
+        self.assertContains(anonymous_response, star_url)
+        self.assertNotContains(anonymous_response, create_url)
+        self.assertNotContains(anonymous_response, update_url)
+        self.assertNotContains(anonymous_response, delete_url)
+
+        self.client.force_login(self.regular_user)
+        regular_response = self.client.get(reverse("main:show_experience"))
+        self.assertContains(regular_response, star_url)
+        self.assertContains(regular_response, "Pengguna")
+        self.assertNotContains(regular_response, create_url)
+        self.assertNotContains(regular_response, update_url)
+        self.assertNotContains(regular_response, delete_url)
+
+        self.client.force_login(self.editor)
+        editor_response = self.client.get(reverse("main:show_experience"))
+        self.assertContains(editor_response, star_url)
+        self.assertContains(editor_response, "Editor")
+        self.assertNotContains(editor_response, create_url)
+        self.assertContains(editor_response, update_url)
+        self.assertNotContains(editor_response, delete_url)
+
+        self.client.force_login(self.owner)
+        owner_response = self.client.get(reverse("main:show_experience"))
+        self.assertContains(owner_response, star_url)
+        self.assertContains(owner_response, "Pemilik")
+        self.assertContains(owner_response, create_url)
+        self.assertContains(owner_response, update_url)
+        self.assertContains(owner_response, delete_url)
+
+    def test_all_authenticated_roles_can_toggle_one_experience_star(self):
+        for user in (self.regular_user, self.editor, self.owner):
+            self.client.force_login(user)
+            response = self.client.post(
+                reverse(
+                    "main:toggle_experience_star",
+                    args=[self.experience.id],
+                )
+            )
+            self.assertRedirects(response, reverse("main:show_experience"))
+            self.assertIn(user, self.experience.starred_by.all())
+
+        self.assertEqual(self.experience.starred_by.count(), 3)
+
+        self.client.force_login(self.regular_user)
+        self.client.post(
+            reverse(
+                "main:toggle_experience_star",
+                args=[self.experience.id],
+            )
+        )
+        self.assertNotIn(self.regular_user, self.experience.starred_by.all())
+        self.assertEqual(self.experience.starred_by.count(), 2)
+
+    def test_experience_page_displays_star_count_and_user_status(self):
+        star_url = reverse(
+            "main:toggle_experience_star",
+            args=[self.experience.id],
+        )
+        self.client.force_login(self.regular_user)
+        self.client.post(star_url)
+
+        starred_response = self.client.get(reverse("main:show_experience"))
+
+        self.assertContains(starred_response, "Unstar")
+        self.assertContains(starred_response, 'aria-pressed="true"')
+        self.assertContains(
+            starred_response,
+            '<span class="star-count">1</span>',
+            html=True,
+        )
+
+        self.client.post(star_url)
+        unstarred_response = self.client.get(reverse("main:show_experience"))
+
+        self.assertContains(unstarred_response, 'aria-pressed="false"')
+        self.assertContains(
+            unstarred_response,
+            '<span class="star-count">0</span>',
+            html=True,
+        )
+
+    def test_experience_star_requires_post_and_csrf(self):
+        star_url = reverse(
+            "main:toggle_experience_star",
+            args=[self.experience.id],
+        )
+        self.client.force_login(self.regular_user)
+        get_response = self.client.get(star_url)
+        page_response = self.client.get(reverse("main:show_experience"))
+
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.regular_user)
+        missing_token_response = csrf_client.post(star_url)
+
+        self.assertEqual(get_response.status_code, 405)
+        self.assertContains(page_response, "csrfmiddlewaretoken")
+        self.assertEqual(missing_token_response.status_code, 403)
+        self.assertEqual(self.experience.starred_by.count(), 0)
+
+    def test_experience_json_uses_usernames_instead_of_internal_user_ids(self):
+        self.experience.starred_by.add(self.regular_user, self.editor)
+
+        response = self.client.get(reverse("main:get_experiences_json"))
+        payload = response.json()
+        serialized_experience = next(
+            item for item in payload if item["pk"] == str(self.experience.id)
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertCountEqual(
+            serialized_experience["fields"]["starred_by"],
+            [["portfolio_reader"], ["portfolio_editor"]],
+        )
 
 
 class Tutorial4Test(TestCase):
