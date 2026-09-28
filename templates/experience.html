@@ -21,6 +21,19 @@
                     {% endif %}
                 </div>
 
+                {% if user.is_authenticated %}
+                    <p class="access-summary">
+                        <span class="access-summary__role">{{ user_role }}</span>
+                        {% if user.is_superuser %}
+                            Anda dapat menambah, mengubah, menghapus, dan memberi star.
+                        {% elif is_editor %}
+                            Anda dapat mengubah dan memberi star, tetapi tidak dapat menambah atau menghapus.
+                        {% else %}
+                            Anda dapat memberi atau membatalkan star pada experience.
+                        {% endif %}
+                    </p>
+                {% endif %}
+
                 <form method="get"
                       action="{% url 'main:show_experience' %}"
                       class="project-search">
@@ -57,17 +70,21 @@
                                 <p class="experience-status">Selesai</p>
                             {% endif %}
 
-                            {% if user.is_superuser %}
-                                <div class="experience-actions">
+                            <div class="experience-actions">
+                                {% include "components/experience_star.html" with experience=experience %}
+
+                                {% if user.is_superuser or is_editor %}
                                     <a href="{% url 'main:update_experience' experience.id %}"
                                        class="button button-secondary">
                                         Ubah
                                     </a>
+                                {% endif %}
 
+                                {% if user.is_superuser %}
                                     {% url 'main:delete_experience' experience.id as delete_url %}
                                     {% include "components/delete_modal.html" with modal_id=experience.id item_type="Experience" item_title=experience.title delete_url=delete_url %}
-                                </div>
-                            {% endif %}
+                                {% endif %}
+                            </div>
                         </article>
                     {% empty %}
                         {% if title_query %}

@@ -683,6 +683,29 @@ h1, .brand {
     border-top: 1px solid var(--line);
 }
 
+.access-summary {
+    margin: -0.5rem 0 1.5rem;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    background: rgba(93, 107, 87, 0.08);
+    border: 1px solid var(--color-border-accent);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+}
+
+.access-summary__role {
+    display: inline-block;
+    margin-right: 0.45rem;
+    padding: 0.1rem 0.55rem;
+    color: #fff;
+    background: var(--color-accent-forest);
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 /* projects page */
 .project-page-section {
     padding: 4rem 0;
@@ -1177,9 +1200,24 @@ h1, .brand {
 
 /* Nav User & Form Messages */
 .nav-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     color: var(--accent);
     font-weight: 700;
     align-self: center;
+}
+
+.nav-role {
+    padding: 0.08rem 0.45rem;
+    color: var(--color-accent-forest);
+    background: rgba(93, 107, 87, 0.1);
+    border: 1px solid var(--color-border-accent);
+    border-radius: var(--radius-full);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .form-message {
@@ -1278,6 +1316,8 @@ h1, .brand {
     }
 
     .experience-actions .button,
+    .experience-actions .star-form,
+    .experience-actions .star-form .button,
     .project-card-actions > a,
     .project-card-actions > .button,
     .project-card-actions .star-form,
