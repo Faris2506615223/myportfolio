@@ -12,11 +12,16 @@
 
                 <div class="project-page-header">
                     <h1>Projects</h1>
-                    {% if user.is_superuser %}
+                    {% if user.is_authenticated %}
                         <a href="{% url 'main:create_project' %}"
                            class="button project-add-button">
                             <span aria-hidden="true">+</span>
                             Tambah Project
+                        </a>
+                    {% else %}
+                        <a href="{% url 'main:login' %}?next={% url 'main:create_project' %}"
+                           class="button project-add-button">
+                            Login untuk Menambah
                         </a>
                     {% endif %}
                 </div>
@@ -70,7 +75,7 @@
 
                                     {% include "components/project_star.html" with project=project %}
 
-                                    {% if user.is_superuser %}
+                                    {% if user.is_authenticated %}
                                         {% url 'main:delete_project' project.id as delete_url %}
                                         {% include "components/delete_modal.html" with modal_id=project.id item_type="Project" item_title=project.title delete_url=delete_url %}
                                     {% endif %}

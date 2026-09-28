@@ -228,12 +228,45 @@ class Tutorial3Test(TestCase):
 
 class ExperienceManagementTest(TestCase):
     def setUp(self):
+        self.user = User.objects.create_user(
+            username="experience_editor",
+            password="experiencepassword123",
+        )
+        self.client.login(
+            username="experience_editor",
+            password="experiencepassword123",
+        )
         self.experience = Experience.objects.create(
             title="Asisten Dosen PBP",
             description="Mendampingi mahasiswa saat tutorial Django.",
             category="part-time",
             thumbnail="https://example.com/asdos.jpg",
         )
+
+    def test_anonymous_user_redirected_from_experience_mutations(self):
+        self.client.logout()
+
+        create_response = self.client.get(reverse("main:create_experience"))
+        update_response = self.client.get(
+            reverse("main:update_experience", args=[self.experience.id])
+        )
+        delete_response = self.client.post(
+            reverse("main:delete_experience", args=[self.experience.id])
+        )
+
+        self.assertRedirects(
+            create_response,
+            f"/login/?next={reverse('main:create_experience')}",
+        )
+        self.assertRedirects(
+            update_response,
+            f"/login/?next={reverse('main:update_experience', args=[self.experience.id])}",
+        )
+        self.assertRedirects(
+            delete_response,
+            f"/login/?next={reverse('main:delete_experience', args=[self.experience.id])}",
+        )
+        self.assertTrue(Experience.objects.filter(pk=self.experience.id).exists())
 
     def test_experience_form_contains_only_editable_data_fields(self):
         self.assertEqual(
@@ -389,15 +422,17 @@ class Tutorial4Test(TestCase):
         response = self.client.post(reverse("main:delete_project", args=[self.project.id]))
         self.assertRedirects(response, f"/login/?next={reverse('main:delete_project', args=[self.project.id])}")
 
-    def test_regular_user_forbidden_from_create_project(self):
+    def test_regular_user_can_open_create_project(self):
         self.client.login(username="student_pbp", password="studentpassword123")
         response = self.client.get(reverse("main:create_project"))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "projects_form.html")
 
-    def test_regular_user_forbidden_from_delete_project(self):
+    def test_regular_user_can_delete_project(self):
         self.client.login(username="student_pbp", password="studentpassword123")
         response = self.client.post(reverse("main:delete_project", args=[self.project.id]))
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirects(response, reverse("main:show_projects"))
+        self.assertFalse(Project.objects.filter(pk=self.project.id).exists())
 
     def test_register_page_renders_and_creates_account(self):
         get_response = self.client.get(reverse("main:register"))

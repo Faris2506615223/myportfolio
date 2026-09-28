@@ -4,9 +4,9 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
-from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from main.forms import ExperienceForm, ProjectForm
@@ -44,6 +44,7 @@ def show_experience(request):
     return render(request, "experience.html", context)
 
 
+@login_required(login_url="/login/")
 def create_experience(request):
     if request.method == "POST":
         form = ExperienceForm(request.POST)
@@ -65,6 +66,7 @@ def create_experience(request):
     return render(request, "experience_form.html", context)
 
 
+@login_required(login_url="/login/")
 def update_experience(request, id):
     experience = get_object_or_404(Experience, pk=id)
 
@@ -89,6 +91,7 @@ def update_experience(request, id):
 
 
 @require_POST
+@login_required(login_url="/login/")
 def delete_experience(request, id):
     experience = get_object_or_404(Experience, pk=id)
     experience.delete()
@@ -125,9 +128,6 @@ def show_projects(request):
 
 @login_required(login_url="/login/")
 def create_project(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
     if request.method == "POST":
         form = ProjectForm(request.POST)
 
@@ -183,8 +183,6 @@ def get_projects_xml(request):
 @require_POST
 @login_required(login_url="/login/")
 def delete_project(request, id):
-    if not request.user.is_superuser:
-        raise PermissionDenied
     project = get_object_or_404(Project, pk=id)
     project.delete()
     messages.success(request, "Project berhasil dihapus.")
@@ -206,15 +204,24 @@ def register(request):
 
 def login_user(request):
     form = AuthenticationForm(request, data=request.POST or None)
+    next_url = request.POST.get("next") or request.GET.get("next") or ""
     if request.method == "POST" and form.is_valid():
         user = form.get_user()
         login(request, user)
-        response = redirect("main:show_main")
+        if next_url and url_has_allowed_host_and_scheme(
+            url=next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            response = redirect(next_url)
+        else:
+            response = redirect("main:show_main")
         response.set_cookie("last_login", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         return response
     context = {
         "name": "Faris",
         "form": form,
+        "next": next_url,
     }
     return render(request, "login.html", context)
 

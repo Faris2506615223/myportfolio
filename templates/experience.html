@@ -12,11 +12,18 @@
 
                 <div class="project-page-header">
                     <h1>Experience</h1>
-                    <a href="{% url 'main:create_experience' %}"
-                       class="button project-add-button">
-                        <span aria-hidden="true">+</span>
-                        Tambah Experience
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'main:create_experience' %}"
+                           class="button project-add-button">
+                            <span aria-hidden="true">+</span>
+                            Tambah Experience
+                        </a>
+                    {% else %}
+                        <a href="{% url 'main:login' %}?next={% url 'main:create_experience' %}"
+                           class="button project-add-button">
+                            Login untuk Menambah
+                        </a>
+                    {% endif %}
                 </div>
 
                 <form method="get"
@@ -55,15 +62,17 @@
                                 <p class="experience-status">Selesai</p>
                             {% endif %}
 
-                            <div class="experience-actions">
-                                <a href="{% url 'main:update_experience' experience.id %}"
-                                   class="button button-secondary">
-                                    Ubah
-                                </a>
+                            {% if user.is_authenticated %}
+                                <div class="experience-actions">
+                                    <a href="{% url 'main:update_experience' experience.id %}"
+                                       class="button button-secondary">
+                                        Ubah
+                                    </a>
 
-                                {% url 'main:delete_experience' experience.id as delete_url %}
-                                {% include "components/delete_modal.html" with modal_id=experience.id item_type="Experience" item_title=experience.title delete_url=delete_url %}
-                            </div>
+                                    {% url 'main:delete_experience' experience.id as delete_url %}
+                                    {% include "components/delete_modal.html" with modal_id=experience.id item_type="Experience" item_title=experience.title delete_url=delete_url %}
+                                </div>
+                            {% endif %}
                         </article>
                     {% empty %}
                         {% if title_query %}
