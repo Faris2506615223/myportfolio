@@ -3,7 +3,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from main.forms import ExperienceForm
+from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
 
 
@@ -82,23 +82,27 @@ class MainTest(TestCase):
         self.assertContains(response, f'href="{reverse("main:show_experience")}"')
         self.assertContains(response, f'href="{reverse("main:show_projects")}"')
 
-    def test_projects_page_displays_data(self):
+    def test_projects_page_renders_ajax_skeleton(self):
         response = self.client.get(reverse("main:show_projects"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.project.title)
-        self.assertContains(response, self.project.category)
-        self.assertContains(response, self.project.description)
-        self.assertContains(response, self.project.thumbnail)
-        self.assertContains(response, self.project.project_url)
-        self.assertContains(response, f'href="{reverse("main:show_project_detail", args=[self.project.id])}"')
+        self.assertContains(response, 'id="project-search-form"')
+        self.assertContains(response, 'id="loading"')
+        self.assertContains(response, 'id="error"')
+        self.assertContains(response, 'id="empty"')
+        self.assertContains(response, 'id="grid"')
+        self.assertContains(response, reverse("main:get_projects_json"))
+        self.assertNotContains(response, self.project.title)
 
     def test_empty_projects_page(self):
         Project.objects.all().delete()
         response = self.client.get(reverse("main:show_projects"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Belum ada proyek yang ditambahkan.")
+        self.assertContains(
+            response,
+            "Belum ada proyek yang ditambahkan atau ditemukan.",
+        )
 
     def test_project_detail_url_is_accessible_and_uses_correct_template(self):
         response = self.client.get(reverse("main:show_project_detail", args=[self.project.id]))
@@ -204,7 +208,8 @@ class Tutorial3Test(TestCase):
             {"title": "BPJ"},
         )
 
-        self.assertContains(response, "BPJSight")
+        self.assertContains(response, 'value="BPJ"')
+        self.assertNotContains(response, "BPJSight")
         self.assertNotContains(response, "PressPoint")
 
     def test_delete_project_rejects_get_request(self):
@@ -783,10 +788,9 @@ class Tutorial4Test(TestCase):
 
         response = self.client.get(reverse("main:show_projects"))
 
-        self.assertContains(
-            response,
-            reverse("main:toggle_star", args=[self.project.id]),
-        )
+        self.assertContains(response, "const starUrl")
+        self.assertContains(response, 'const IS_SUPERUSER = "false"')
+        self.assertNotContains(response, 'id="add-project-modal"')
         self.assertNotContains(response, reverse("main:create_project"))
         self.assertNotContains(
             response,
@@ -860,4 +864,153 @@ class Tutorial4Test(TestCase):
         data = response.json()
         target_project = next(p for p in data if p["pk"] == str(self.project.id))
         self.assertEqual(target_project["fields"]["starred_by"], [["student_pbp"]])
+
+
+class Tutorial5Test(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_superuser(
+            username="tutorial5_owner",
+            password="ownerpassword123",
+        )
+        cls.regular_user = User.objects.create_user(
+            username="tutorial5_reader",
+            password="readerpassword123",
+        )
+        cls.project = Project.objects.create(
+            title="Interactive Portfolio",
+            category="Django & JavaScript",
+            description="Proyek yang dimuat melalui Fetch API.",
+            thumbnail="/static/img/projects/BPJSight.webp",
+            project_url="https://example.com/project",
+        )
+
+    def valid_project_data(self, **overrides):
+        data = {
+            "title": "Project AJAX",
+            "category": "Django",
+            "description": "Dibuat tanpa memuat ulang halaman.",
+            "thumbnail": "/static/img/projects/GarudaHacks.webp",
+            "project_url": "https://example.com/ajax-project",
+        }
+        data.update(overrides)
+        return data
+
+    def test_projects_json_contains_star_metadata_for_current_user(self):
+        self.project.starred_by.add(self.regular_user)
+        self.client.force_login(self.regular_user)
+
+        response = self.client.get(reverse("main:get_projects_json"))
+        payload = response.json()
+        fields = next(
+            item["fields"]
+            for item in payload
+            if item["pk"] == str(self.project.id)
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(fields["star_count"], 1)
+        self.assertTrue(fields["is_starred"])
+        self.assertEqual(fields["starred_by_names"], "tutorial5_reader")
+
+    def test_ajax_create_only_accepts_post(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse("main:create_project_ajax"))
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_ajax_create_returns_json_403_without_owner_access(self):
+        endpoint = reverse("main:create_project_ajax")
+
+        anonymous_response = self.client.post(
+            endpoint,
+            self.valid_project_data(),
+        )
+        self.client.force_login(self.regular_user)
+        regular_response = self.client.post(
+            endpoint,
+            self.valid_project_data(),
+        )
+
+        self.assertEqual(anonymous_response.status_code, 403)
+        self.assertEqual(regular_response.status_code, 403)
+        self.assertIn("message", anonymous_response.json())
+        self.assertFalse(Project.objects.filter(title="Project AJAX").exists())
+
+    def test_ajax_create_saves_valid_project_and_returns_201(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            reverse("main:create_project_ajax"),
+            self.valid_project_data(
+                title="Project <b>AJAX</b>",
+                category="<strong>Full Stack</strong>",
+                description="Aman dari <em>HTML</em> tersimpan.",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 201)
+        project = Project.objects.get(pk=response.json()["pk"])
+        self.assertEqual(project.title, "Project AJAX")
+        self.assertEqual(project.category, "Full Stack")
+        self.assertEqual(project.description, "Aman dari HTML tersimpan.")
+
+    def test_ajax_create_returns_field_errors_for_invalid_input(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            reverse("main:create_project_ajax"),
+            self.valid_project_data(title='<img src="x" onerror="alert(1)">'),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("title", response.json()["errors"])
+        self.assertFalse(
+            Project.objects.filter(category="Django", title="").exists()
+        )
+
+    def test_project_form_rejects_unsafe_thumbnail_scheme(self):
+        form = ProjectForm(
+            data=self.valid_project_data(
+                thumbnail="javascript:alert(1)",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("thumbnail", form.errors)
+
+    def test_projects_page_contains_ajax_xss_and_debounce_guards(self):
+        response = self.client.get(reverse("main:show_projects"))
+
+        self.assertContains(response, "function escapeHtml(value)")
+        self.assertContains(response, "new AbortController()")
+        self.assertContains(response, "SEARCH_DEBOUNCE_DELAY = 300")
+        self.assertContains(response, "event.preventDefault()")
+        self.assertContains(response, "fetchProjects(searchInput.value.trim())")
+
+    def test_add_project_modal_is_only_rendered_for_owner(self):
+        anonymous_response = self.client.get(reverse("main:show_projects"))
+        self.client.force_login(self.owner)
+        owner_response = self.client.get(reverse("main:show_projects"))
+
+        self.assertNotContains(anonymous_response, 'id="add-project-modal"')
+        self.assertContains(owner_response, 'id="add-project-modal"')
+        self.assertContains(owner_response, 'id="project-form"')
+        self.assertContains(owner_response, "csrfmiddlewaretoken")
+
+    def test_ajax_create_requires_csrf_token(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.owner)
+        csrf_client.get(reverse("main:show_projects"))
+
+        missing_token_response = csrf_client.post(
+            reverse("main:create_project_ajax"),
+            self.valid_project_data(),
+        )
+        accepted_response = csrf_client.post(
+            reverse("main:create_project_ajax"),
+            self.valid_project_data(title="Project dengan CSRF"),
+            HTTP_X_CSRFTOKEN=csrf_client.cookies["csrftoken"].value,
+        )
+
+        self.assertEqual(missing_token_response.status_code, 403)
+        self.assertEqual(accepted_response.status_code, 201)
 
