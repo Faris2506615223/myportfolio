@@ -1,4 +1,7 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.forms import ModelForm, Select, Textarea, TextInput, URLInput
+from django.utils.html import strip_tags
 
 from main.models import Experience, Project
 
@@ -88,3 +91,33 @@ class ProjectForm(ModelForm):
                 }
             ),
         }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError(
+                "Nama proyek tidak boleh hanya berisi tag HTML."
+            )
+        return title
+
+    def clean_category(self):
+        return strip_tags(self.cleaned_data["category"]).strip()
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
+
+    def clean_thumbnail(self):
+        thumbnail = strip_tags(self.cleaned_data.get("thumbnail") or "").strip()
+        if not thumbnail:
+            return thumbnail
+
+        if thumbnail.startswith(("/static/", "/media/")):
+            return thumbnail
+
+        try:
+            URLValidator(schemes=["http", "https"])(thumbnail)
+        except ValidationError as error:
+            raise ValidationError(
+                "Thumbnail harus berupa URL HTTP(S) atau path /static/ dan /media/."
+            ) from error
+        return thumbnail
