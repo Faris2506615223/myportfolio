@@ -33,17 +33,10 @@ def show_main(request):
 
 
 def show_experience(request):
-    json_response = get_experiences_json(request)
-    deserialized_experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    experiences = [item.object for item in deserialized_experiences]
-
     context = {
         "name": "Faris",
-        "experience_list": experiences,
         "title_query": request.GET.get("title", "").strip(),
+        "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
 
@@ -68,6 +61,36 @@ def create_experience(request):
         "submit_label": "Tambah Experience",
     }
     return render(request, "experience_form.html", context)
+
+
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {
+                "message": (
+                    "Hanya pemilik portofolio yang dapat menambahkan "
+                    "experience."
+                )
+            },
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        experience = form.save()
+        return JsonResponse(
+            {
+                "message": "Experience berhasil ditambahkan.",
+                "pk": str(experience.id),
+            },
+            status=201,
+        )
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )
 
 
 @experience_editor_required
@@ -105,17 +128,47 @@ def delete_experience(request, id):
 
 def get_experiences_json(request):
     title_query = request.GET.get("title", "").strip()
-    experiences = Experience.objects.all()
+    experiences = Experience.objects.prefetch_related("starred_by").all()
 
     if title_query:
         experiences = experiences.filter(title__icontains=title_query)
 
-    experiences_json = serializers.serialize(
-        "json",
-        experiences,
-        use_natural_foreign_keys=True,
-    )
-    return HttpResponse(experiences_json, content_type="application/json")
+    data = []
+    for experience in experiences:
+        starred_users = list(experience.starred_by.all())
+        data.append(
+            {
+                "pk": str(experience.id),
+                "fields": {
+                    "title": experience.title,
+                    "description": experience.description,
+                    "category": experience.category,
+                    "category_display": experience.get_category_display(),
+                    "thumbnail": experience.thumbnail,
+                    "started_at": experience.started_at.isoformat(),
+                    "ended_at": (
+                        experience.ended_at.isoformat()
+                        if experience.ended_at
+                        else None
+                    ),
+                    "is_ongoing": experience.is_ongoing,
+                    "star_count": len(starred_users),
+                    "is_starred": (
+                        request.user in starred_users
+                        if request.user.is_authenticated
+                        else False
+                    ),
+                    "starred_by_names": ", ".join(
+                        user.username for user in starred_users
+                    ),
+                    "starred_by": [
+                        [user.username] for user in starred_users
+                    ],
+                },
+            }
+        )
+
+    return JsonResponse(data, safe=False)
 
 
 def show_projects(request):

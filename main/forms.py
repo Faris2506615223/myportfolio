@@ -6,7 +6,19 @@ from django.utils.html import strip_tags
 from main.models import Experience, Project
 
 
-class ExperienceForm(ModelForm):
+class SanitizedTextModelForm(ModelForm):
+    """Provide consistent server-side HTML stripping for text inputs."""
+
+    def clean_required_text(self, field_name, label):
+        value = strip_tags(self.cleaned_data[field_name]).strip()
+        if not value:
+            raise ValidationError(
+                f"{label} tidak boleh kosong atau hanya berisi tag HTML."
+            )
+        return value
+
+
+class ExperienceForm(SanitizedTextModelForm):
     class Meta:
         model = Experience
         fields = [
@@ -42,8 +54,17 @@ class ExperienceForm(ModelForm):
             ),
         }
 
+    def clean_title(self):
+        return self.clean_required_text("title", "Posisi atau kegiatan")
 
-class ProjectForm(ModelForm):
+    def clean_description(self):
+        return self.clean_required_text("description", "Deskripsi pengalaman")
+
+    def clean_thumbnail(self):
+        return strip_tags(self.cleaned_data.get("thumbnail") or "").strip()
+
+
+class ProjectForm(SanitizedTextModelForm):
     class Meta:
         model = Project
         fields = [
@@ -93,18 +114,13 @@ class ProjectForm(ModelForm):
         }
 
     def clean_title(self):
-        title = strip_tags(self.cleaned_data["title"]).strip()
-        if not title:
-            raise ValidationError(
-                "Nama proyek tidak boleh hanya berisi tag HTML."
-            )
-        return title
+        return self.clean_required_text("title", "Nama proyek")
 
     def clean_category(self):
-        return strip_tags(self.cleaned_data["category"]).strip()
+        return self.clean_required_text("category", "Kategori proyek")
 
     def clean_description(self):
-        return strip_tags(self.cleaned_data["description"]).strip()
+        return self.clean_required_text("description", "Deskripsi proyek")
 
     def clean_thumbnail(self):
         thumbnail = strip_tags(self.cleaned_data.get("thumbnail") or "").strip()
