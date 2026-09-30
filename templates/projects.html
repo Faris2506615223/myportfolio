@@ -64,6 +64,7 @@
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
     const SEARCH_DEBOUNCE_DELAY = 300;
+    const { escapeHtml, getCookie, safeWebUrl } = window.ajaxUtils;
 
     let projectsAbortController;
     let searchDebounceTimer;
@@ -86,29 +87,6 @@
         errorState.classList.toggle('hide', !showError);
         emptyState.classList.toggle('hide', !showEmpty);
         gridContainer.classList.toggle('hide', !showGrid);
-    }
-
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#39;');
-    }
-
-    function safeWebUrl(value) {
-        const rawValue = String(value ?? '').trim();
-        if (!rawValue) return '';
-
-        try {
-            const parsedUrl = new URL(rawValue, window.location.origin);
-            return ['http:', 'https:'].includes(parsedUrl.protocol)
-                ? rawValue
-                : '';
-        } catch (error) {
-            return '';
-        }
     }
 
     function buildProjectCardElement(item) {
@@ -259,23 +237,6 @@
         if (projectModal && projectModal.matches(':popover-open')) {
             projectModal.hidePopover();
         }
-    }
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let index = 0; index < cookies.length; index += 1) {
-                const cookie = cookies[index].trim();
-                if (cookie.substring(0, name.length + 1) === `${name}=`) {
-                    cookieValue = decodeURIComponent(
-                        cookie.substring(name.length + 1),
-                    );
-                    break;
-                }
-            }
-        }
-        return cookieValue;
     }
 
     async function addProject(event) {
