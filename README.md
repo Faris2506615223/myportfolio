@@ -8,7 +8,7 @@
 
 ## Deskripsi Proyek
 
-Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 semantik dan CSS3 murni tanpa dependensi JavaScript. Website ini menyajikan profil, daftar proyek, pengalaman, dan keahlian teknologi. Data proyek dan pengalaman dikelola melalui form tervalidasi, disimpan pada database, serta tersedia melalui endpoint JSON. Seluruh halaman memakai template induk yang sama agar navigasi, pesan, metadata dasar, dan footer tetap konsisten.
+Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 semantik, CSS3, dan JavaScript modular. Website ini menyajikan profil, daftar proyek, pengalaman, dan keahlian teknologi. Data proyek dan pengalaman dikelola melalui `ModelForm`, disimpan pada database, serta dimuat dari endpoint JSON dengan Fetch API. Seluruh halaman memakai template induk yang sama agar navigasi, pesan, metadata dasar, dan footer tetap konsisten.
 
 ---
 
@@ -76,15 +76,15 @@ Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 sema
 
 ## Progres Pengerjaan (Tugas 3)
 
-- [X] **Template Inheritance**: Seluruh halaman HTML penuh menggunakan `{% extends "base.html" %}`; modal konfirmasi hapus Project dan Experience memakai satu partial reusable.
+- [X] **Template Inheritance**: Seluruh halaman HTML penuh menggunakan `{% extends "base.html" %}` sehingga struktur navigasi, pesan, dan footer tidak diduplikasi.
 - [X] **`ExperienceForm`**: Membuat `ModelForm` dengan field `title`, `description`, `category`, dan `thumbnail` yang mencakup input teks, textarea, pilihan kategori, dan validasi URL; `id`, `started_at`, serta `ended_at` tidak dapat diubah melalui form.
 - [X] **Create & Update**: Menambahkan halaman tambah dan ubah Experience dengan validasi bawaan Django, form yang terisi otomatis saat update, CSRF token, pesan sukses, dan redirect setelah penyimpanan.
 - [X] **Delete**: Menambahkan penghapusan Experience melalui request `POST`, CSRF token, dan modal konfirmasi; request `GET` ditolak dengan status `405 Method Not Allowed`.
 - [X] **JSON Data Delivery**: Menambahkan endpoint `/api/experiences/` yang mendukung filter judul dan mengembalikan hasil serialisasi model dengan content type `application/json`.
-- [X] **JSON Deserialization**: Halaman `/experience/` mengambil response endpoint JSON, mendeserialisasikannya menjadi objek `Experience`, lalu menampilkan data tersebut pada template.
+- [X] **JSON Deserialization**: Pada iterasi Tugas 3, halaman `/experience/` mendeserialisasikan response endpoint JSON menjadi objek `Experience`; alur ini kemudian digantikan oleh Fetch API pada Tugas 5.
 - [X] **UI/UX Tambahan**: Menambahkan pencarian Experience, empty state khusus hasil pencarian, thumbnail opsional, tombol aksi responsif, dan pesan keberhasilan operasi.
 - [X] **Automated Testing**: Menambahkan pengujian form field, template inheritance, validasi create, prefilled update, penyimpanan update, proteksi delete, endpoint JSON, filter, dan render hasil deserialisasi.
-- [X] **Verifikasi Akhir**: Seluruh 29 automated test lulus, `manage.py check` tidak menemukan masalah, dan server lokal merespons halaman Experience serta endpoint JSON dengan status `200`.
+- [X] **Verifikasi Akhir**: Test untuk cakupan Tugas 3 lulus, `manage.py check` tidak menemukan masalah, dan server lokal merespons halaman Experience serta endpoint JSON dengan status `200`.
 
 ### Endpoint Tugas 3
 
@@ -137,6 +137,32 @@ Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 sema
 | `GET`           | `/api/experiences/`          | Publik; relasi pengguna memakai username |
 
 Setelah mengambil perubahan terbaru, jalankan `python manage.py migrate` untuk membuat tabel relasi star Experience, kemudian verifikasi dengan `python manage.py test` dan `python manage.py runserver`.
+
+---
+
+## Progres Pengerjaan (Tugas 5)
+
+- [X] **Experience dengan AJAX**: Halaman `/experience/` hanya merender kerangka, lalu mengambil kartu Experience dari endpoint JSON menggunakan `fetch()` tanpa reload.
+- [X] **JSON Manual dan Star**: Endpoint menyusun `JsonResponse` secara manual serta menyertakan jumlah star, status star pengguna aktif, dan username pemberi star.
+- [X] **State Antarmuka**: Menyediakan tampilan loading, hasil kosong, dan error yang saling eksklusif.
+- [X] **Pencarian Debounce**: Pencarian judul berjalan lewat AJAX dengan jeda 300 ms dan membatalkan request sebelumnya menggunakan `AbortController`.
+- [X] **Modal Tambah AJAX**: Superuser dapat menambahkan Experience melalui modal, menerima respons JSON `201`, `400`, atau `403`, dan melihat daftar diperbarui tanpa reload.
+- [X] **CSRF dan Hak Akses**: Request POST mengirim header `X-CSRFToken`; view tetap memeriksa `is_superuser` sehingga menyembunyikan tombol bukan satu-satunya pengamanan.
+- [X] **Toast**: Keberhasilan, kegagalan jaringan, dan pesan validasi server ditampilkan melalui komponen toast reusable.
+- [X] **Perlindungan XSS**: Input teks dibersihkan dengan `strip_tags` pada method `clean_<field>` di `ExperienceForm`; JavaScript membuat elemen DOM dengan `textContent` dan memvalidasi URL gambar.
+- [X] **Modularisasi**: Helper `getCookie`, `escapeHtml`, dan `safeWebUrl` dipusatkan di `static/js/ajax-utils.js`; logika Experience dipisahkan ke `static/js/experience.js`.
+- [X] **Automated Testing**: Seluruh 71 test lulus, mencakup JSON dan metadata star, pencarian, status HTTP AJAX, izin, CSRF, sanitasi XSS, modal berbasis peran, state UI, dan guard JavaScript.
+
+### Endpoint Tugas 5
+
+| Method            | Endpoint                        | Fungsi dan hak akses                                                 |
+| ----------------- | ------------------------------- | -------------------------------------------------------------------- |
+| `GET`           | `/experience/`                | Kerangka halaman Experience; dapat diakses publik                    |
+| `GET`           | `/api/experiences/?title=...` | Data JSON manual dan pencarian; dapat diakses publik                 |
+| `POST`          | `/experience/add-ajax/`       | Menambah Experience; hanya superuser, respons`201`/`400`/`403` |
+| `POST`          | `/experience/<uuid>/star/`    | Toggle star; pengguna harus login                                    |
+| `GET`, `POST` | `/experience/<uuid>/edit/`    | Mengubah Experience; Editor dan superuser                            |
+| `POST`          | `/experience/<uuid>/delete/`  | Menghapus Experience; hanya superuser                                |
 
 ---
 
@@ -228,9 +254,21 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
    JSON umumnya lebih ringkas karena tidak membutuhkan pasangan tag pembuka dan penutup seperti XML. Struktur object dan array JSON juga langsung sesuai dengan tipe data yang lazim dipakai JavaScript, sehingga respons API lebih mudah diproses oleh browser dan banyak framework frontend. Ukuran payload yang lebih kecil serta ketersediaan parser bawaan di hampir semua bahasa membuat pertukaran data lebih praktis. XML tetap berguna pada sistem yang membutuhkan namespace, schema yang kompleks, atau integrasi lama, tetapi kebutuhan API web pada umumnya dapat dipenuhi dengan lebih sederhana oleh JSON.
 3. **Jelaskan alur yang terjadi saat kamu menggunakan fungsi view untuk mengembalikan data portofoliomu dalam bentuk JSON. Mengapa kita perlu melakukan proses serialization pada model Django sebelum datanya dikembalikan?**
 
-   Saat `/api/experiences/` diakses, URLconf meneruskan request ke `get_experiences_json`. View mengambil data melalui `Experience.objects.all()` dan menerapkan filter judul bila parameter `title` tersedia. `serializers.serialize("json", experiences)` kemudian mengubah setiap instance model menjadi teks JSON yang memuat nama model, primary key UUID, dan field datanya. Teks tersebut dikirim melalui `HttpResponse` dengan content type `application/json`.
+   Pada implementasi Tugas 3, saat `/api/experiences/` diakses, URLconf meneruskan request ke `get_experiences_json`. View mengambil data melalui `Experience.objects.all()` dan menerapkan filter judul bila parameter `title` tersedia. `serializers.serialize("json", experiences)` kemudian mengubah setiap instance model menjadi teks JSON yang memuat nama model, primary key UUID, dan field datanya. Teks tersebut dikirim melalui `HttpResponse` dengan content type `application/json`.
 
-   Serialisasi diperlukan karena instance model dan `QuerySet` adalah objek Python yang juga membawa perilaku ORM; keduanya tidak dapat dikirim secara langsung melalui HTTP. HTTP mengirim byte atau teks, sehingga data harus diubah menjadi format pertukaran yang memiliki representasi standar. Pada halaman `/experience/`, respons JSON tersebut dideserialisasi kembali memakai `serializers.deserialize`, lalu objek hasilnya diberikan ke template agar alur data delivery dan konsumsi JSON dapat terlihat lengkap.
+   Serialisasi diperlukan karena instance model dan `QuerySet` adalah objek Python yang juga membawa perilaku ORM; keduanya tidak dapat dikirim secara langsung melalui HTTP. HTTP mengirim byte atau teks, sehingga data harus diubah menjadi format pertukaran yang memiliki representasi standar. Pada Tugas 5, mekanisme ini dikembangkan lebih lanjut menjadi `JsonResponse` manual agar metadata star dapat dibentuk secara eksplisit dan dikonsumsi langsung oleh JavaScript.
+
+### Tugas 5
+
+1. **Jelaskan apa itu debouncing dan mengapa teknik ini penting diterapkan pada fitur pencarian yang menggunakan AJAX!**
+
+   *Debouncing* adalah teknik menunda pemanggilan fungsi sampai pengguna berhenti memicu sebuah event selama interval tertentu. Pada pencarian Experience, setiap event `input` membatalkan timer sebelumnya dan membuat timer 300 ms yang baru. Request baru hanya dikirim ketika pengguna berhenti mengetik selama jeda tersebut. Teknik ini mencegah satu request untuk setiap karakter, mengurangi beban server dan jaringan, menghindari perubahan hasil yang terlalu sering, serta membuat antarmuka lebih stabil. `AbortController` turut membatalkan request lama agar respons yang terlambat tidak menimpa hasil pencarian terbaru.
+2. **Jelaskan fungsi dari penggunaan `await` ketika kita menggunakan `fetch()`! Apa yang akan terjadi jika kita tidak menggunakan `await`?**
+
+   `fetch()` langsung mengembalikan `Promise`, bukan objek respons yang sudah berisi data. `await fetch(...)` menahan eksekusi di dalam fungsi `async` sampai request selesai dan menghasilkan objek `Response`. Hal yang sama berlaku pada `await response.json()`, yang menunggu body selesai dibaca dan diparse. Tanpa `await`, variabel masih berisi `Promise`; akses seperti `response.ok` atau iterasi data tidak akan bekerja sebagaimana mestinya. Kode tetap dapat ditulis tanpa `await`, tetapi harus memakai rantai `.then()` dan `.catch()` untuk mengatur urutan serta penanganan error secara eksplisit.
+3. **Jelaskan apa itu serangan XSS (*Cross-Site Scripting*) dan mengapa data yang ditampilkan melalui AJAX/JavaScript lebih rentan terhadap serangan ini daripada data yang ditampilkan langsung melalui template Django!**
+
+   XSS adalah serangan ketika input penyerang diperlakukan sebagai HTML atau JavaScript aktif di browser korban, misalnya atribut `onerror` pada tag gambar. Template Django melakukan *auto-escaping* terhadap variabel secara default, sedangkan JavaScript dapat melewati perlindungan itu apabila data AJAX mentah dimasukkan melalui `innerHTML`. Karena itu implementasi Experience memakai `textContent` untuk semua teks, memvalidasi skema URL sebelum memasang `src`, dan membersihkan input di server dengan `strip_tags`. Pertahanan berlapis ini memastikan payload seperti `<img src="x" onerror="alert('XSS!')">` tidak dieksekusi.
 
 ---
 
@@ -263,6 +301,11 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Membuat pemeriksaan peran reusable untuk superuser dan anggota group `Editor`, termasuk perilaku redirect login dan `403 Forbidden`.
   - Menambahkan star pada Experience, komponen tombol star reusable, natural foreign key pada JSON, serta indikator peran pada UI.
   - Menyusun test matriks pengunjung, pengguna biasa, Editor, dan superuser, termasuk test CSRF dan request mutasi langsung.
+- **Tugas 5**:
+  - Membaca PDF tugas dan memetakan checklist serta rubrik ke perubahan view, form, URL, template, JavaScript, test, dan README.
+  - Mengubah Experience menjadi alur AJAX end-to-end, membuat endpoint JSON manual, modal tambah, pencarian debounce, state UI, toast, CSRF, dan perlindungan XSS.
+  - Mengaudit pemakaian source code, memusatkan helper AJAX yang duplikatif, serta menghapus partial dan CSS yang tidak lagi memiliki pemakai.
+  - Menambah test regresi dan test khusus Tugas 5 sebelum verifikasi `manage.py check`, migrasi, test suite, dan server lokal.
 
 ### 3. Strategi Prompting
 
@@ -271,6 +314,7 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
 - Memanfaatkan website live saya di Vercel (fufufarizz.vercel.app) sebagai acuan referensi data proyek dan estetika visual.
 - Untuk Tugas 3, memberikan checklist fitur dan rubrik penilaian lengkap agar AI dapat memetakan setiap perubahan kode ke kriteria yang harus diverifikasi.
 - Untuk Tugas 4, meminta AI membaca PDF dan rubrik terlebih dahulu, mengaudit implementasi Tutorial 04 yang sudah ada, lalu membuktikan setiap aturan akses melalui automated test.
+- Untuk Tugas 5, memberikan batasan agar AI hanya mengimplementasikan instruksi PDF, menghapus kode hanya jika terbukti redundan/tidak terpakai.
 
 ### 4. Analisis Kritis & Perbaikan Mandiri
 
@@ -281,6 +325,7 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Solusi awal AI perlu diperiksa kembali karena refactor yang terlalu luas dapat menambah kompleksitas tanpa meningkatkan pemenuhan checklist.
   - Browser terintegrasi tidak tersedia ketika Tugas 3 diverifikasi, sehingga pengecekan runtime dilanjutkan melalui request HTTP ke server lokal dan Django test client.
   - AI tidak dapat menentukan siapa yang seharusnya menjadi Editor hanya dari username; keanggotaan group tetap harus ditetapkan secara sadar oleh pemilik melalui Django Admin.
+  - Implementasi awal Tugas 5 berpotensi menduplikasi `getCookie`, sanitasi URL, dan escaping pada setiap halaman; helper tersebut perlu diaudit agar satu sumber kebenaran dipakai bersama.
 - **Perbaikan Manual yang Dilakukan**:
   - Menginstruksikan AI untuk membuat rencana implementasi terlebih dahulu (*implementation plan*) dan melarang tindakan commit Git otomatis agar saya memegang kendali penuh atas riwayat commit repositori.
   - Memastikan data proyek yang dimasukkan ke database selaras dengan aset lokal yang telah disiapkan di `static/img/projects/`.
@@ -288,11 +333,13 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Menjaga model `Experience` yang sudah sesuai kebutuhan agar tidak membuat migrasi skema yang tidak diperlukan, lalu memusatkan perubahan pada form, view, route, template, dan test.
   - Memastikan aturan UI selalu didukung pemeriksaan server-side dan tidak menganggap tombol yang disembunyikan sebagai mekanisme keamanan.
   - Memverifikasi skenario empat peran dengan test client, termasuk POST tanpa izin, CSRF, dan bentuk data endpoint JSON.
+  - Memastikan Experience menggunakan `textContent` alih-alih `innerHTML`, mempertahankan pemeriksaan izin di view, dan menambahkan test payload XSS serta status `201`, `400`, dan `403`.
 
-### 5. Log Prompt Utama (ril aseli no fek fek)
+### 5. Log Prompt Utama
 
 1. *"browser fufufarizz.vercel.app, Berikut saya berikan referensi website dari hasil akhir portofolio website pada source code di tahap 10 (sekarang masih tahap 1, ikuti sesuai tahap) Berikan implementation plannya. Tahap 1: Lanjutkan halaman “About Me” yang sudah dibuat. Tambahkan satu atau lebih section baru ke halaman yang sama, masih murni dengan HTML5 dan CSS3 (belum ada database/MVT). Pilihan saya, saya ingin anda menambahkan section get to know me persis seperti screenshot yang saya berikan dari website referensi. Karena tugas ini sifatnya lebih bebas, kamu dipersilakan membuat tampilan CSS berbeda dari referensi di website - tambahkan animasi, layout grid, atau elemen visual lain sesuai kreativitasmu, selama tetap rapi dan responsif. Satu pesan saya, buat kode html dan css yang mudah dimengerti, tidak bertele tele, dan tulis kode dengan rapi. Pastikan kode yang dibuat tidak mengada ngada agar saya dapat tetap mengerti apa yang ditulis. Desain visual (warna, font, tata letak, dsb.) bebas diubah, desain seluruh halaman “About Me”, bukan cuma section barunya, asal tetap murni HTML5 dan CSS3, terstruktur rapi, dan checklist di bawah tetap terpenuhi. Checklist minimal untuk tugas ini: -Minimal satu section baru ditambahkan ke halaman yang sama. -Section baru tersebut punya isi yang nyata (bukan lorem ipsum atau placeholder kosong), samakan saja dengan website referensi -Halaman tetap terlihat rapi di lebar layar desktop maupun mobile. -Proyek berhasil dijalankan dengan python manage.py runserver tanpa error."*
 2. *"Cek website yang saya berikan, saya ingin anda mengcopy seluruh bagian pada Passion, benar benar copy semuanya sama persis. Untuk Element/gambar pada bagian projects, saya telah menaruh sourcenya di img/projects. Proceed dengan revisi: Jangan menggunakan javascript, tambahkan murni html dan css nya saja. bila terdapat kode/fitur yang membutuhkan javascript maka di skip dulu"*
 3. *"Commit text: Jangan ubah kode ataupun melakukan commit. Saya ingin melakukan branching di git dan melakukan commit satu persatu, mulai dari bagian get to know me dan bagian cards. Untuk itu, saya ingin anda membuatkan copy writing dengan lengkap dengan format git checkout -b ..., git add ..., git commit -m "..." hingga git push ... saya ingin melakukan 3 commit 1. pembuatan get to know me 2. pembuatan cards 3, penggantian teks lorem ipsum cukup berikan copywritingnya, untuk kode card biar saya yang hapus dahulu untuk commit get to know me, untuk penggantian teks lorem ipsum juga biar saya yang ganti secara mandiri."*
 4. *"/browser fufufarizz.vercel.app, Saya memberikan link browser sebagai referensi tahap 10 tugas yang sudah jadi, sedangkan sekarang, saya meminta anda untuk menyelesaikan tahap 2. Berikut saya berikan perintah dan tahapan yang harus anda kerjakan untuk menyelesaikan tugas tahap 2. Tugas: Terapkan pola Model-View-Template (MVT)... Buatkan implementation plannya, jangan melakukan commit apapun secara mandiri."*
 5. *"Refactor seluruh berkas HTML identik agar extend template utama, lalu terapkan Create Form, Update Form, Data Deletion, JSON Data Delivery, dan tampilan hasil deserialisasi untuk satu bagian portofolio lain. Pastikan proyek dapat dijalankan tanpa error."*
+6. *"Baca kode pada source code, hapus implementasi yang redundan atau tidak terpakai, lalu baca tugas-5.pdf. Buatkan file HINT.md yang memuat panduan untuk menyelesaikan tugas 5 berdasarkan kode yang sudah terimplementasi dan lanjutkan dengan memberikan kode yang perlu diterapkan beserta dengan kegunaannya masing-masing. Jangan mengimplementasi kode secara langsung ke source code dan jangan melakukan commit apapun."*
