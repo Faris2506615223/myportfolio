@@ -96,7 +96,7 @@ class MainTest(TestCase):
         self.assertContains(response, 'id="error"')
         self.assertContains(response, 'id="empty"')
         self.assertContains(response, 'id="grid"')
-        self.assertContains(response, reverse("main:get_projects_json"))
+        self.assertContains(response, reverse("api:project-list"))
         self.assertNotContains(response, self.project.title)
 
     def test_empty_projects_page(self):
@@ -774,7 +774,7 @@ class Tutorial4Test(TestCase):
 
         response = self.client.get(reverse("main:show_projects"))
 
-        self.assertContains(response, "const starUrl")
+        self.assertContains(response, "STAR_PROJECT_ENDPOINT")
         self.assertContains(response, 'const IS_SUPERUSER = "false"')
         self.assertNotContains(response, 'id="add-project-modal"')
         self.assertNotContains(response, reverse("main:create_project"))
