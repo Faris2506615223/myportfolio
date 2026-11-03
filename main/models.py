@@ -53,6 +53,29 @@ class Project(models.Model):
         User, related_name="starred_projects", blank=True
     )
 
+    def __init__(self, *args, **kwargs):
+        if "tech_stack" in kwargs and "category" not in kwargs:
+            kwargs["category"] = kwargs.pop("tech_stack")
+        if "project_image_url" in kwargs and "thumbnail" not in kwargs:
+            kwargs["thumbnail"] = kwargs.pop("project_image_url")
+        super().__init__(*args, **kwargs)
+
+    @property
+    def tech_stack(self):
+        return self.category
+
+    @tech_stack.setter
+    def tech_stack(self, value):
+        self.category = value
+
+    @property
+    def project_image_url(self):
+        return self.thumbnail
+
+    @project_image_url.setter
+    def project_image_url(self, value):
+        self.thumbnail = value
+
     def __str__(self):
         return self.title
 
