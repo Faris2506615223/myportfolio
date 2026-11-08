@@ -1294,6 +1294,41 @@ h1, .brand {
 }
 
 /* Tutorial 05: AJAX states, reusable toast, and add-item modal */
+/* Filters wrap on smaller screens and preserve usable input widths. */
+.experience-filters {
+    flex-wrap: wrap;
+}
+
+.experience-filters .project-search__input {
+    min-width: min(100%, 240px);
+}
+
+.experience-filters select {
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+}
+
+.experience-result-count {
+    margin: 0 0 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.field-error,
+.form-feedback {
+    color: #9b2924;
+    font-size: 0.875rem;
+}
+
+.form-group [aria-invalid="true"] {
+    border-color: #9b2924;
+}
+
 .hide {
     display: none !important;
 }
