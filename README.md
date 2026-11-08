@@ -8,7 +8,7 @@
 
 ## Deskripsi Proyek
 
-Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 semantik, CSS3, dan JavaScript modular. Website ini menyajikan profil, daftar proyek, pengalaman, dan keahlian teknologi. Data proyek dan pengalaman dikelola melalui `ModelForm`, disimpan pada database, serta dimuat dari endpoint JSON dengan Fetch API. Seluruh halaman memakai template induk yang sama agar navigasi, pesan, metadata dasar, dan footer tetap konsisten.
+Website portofolio personal berbasis Django yang dibangun menggunakan HTML5 semantik, CSS3, dan JavaScript modular. Website ini menyajikan profil, daftar proyek, pengalaman, dan keahlian teknologi. Halaman Projects dan Experience menggunakan Django REST Framework untuk pertukaran data dan Fetch API untuk interaksi tanpa reload. Model, database, relasi star, serta form dari tugas sebelumnya tetap digunakan. Seluruh halaman memakai template induk yang sama agar navigasi, pesan, metadata dasar, dan footer tetap konsisten.
 
 ---
 
@@ -166,6 +166,98 @@ Setelah mengambil perubahan terbaru, jalankan `python manage.py migrate` untuk m
 
 ---
 
+## Progres Pengerjaan (Tugas 6)
+
+Tugas ini melanjutkan **Experience** dari Tugas 3–5. API dan halaman **Projects** dari Tutorial 07 tetap dipertahankan; implementasi tutorial sudah tersedia pada riwayat commit sampai `5156433` (3 November 2026). Tidak ada model pengganti, penghapusan data lama, atau migrasi skema baru.
+
+- [X] **Serializer**: Membuat `ExperienceSerializer` di `main/serializers.py` dengan daftar field eksplisit. `id`, tanggal, label kategori, status berlangsung, dan metadata star bersifat read-only.
+- [X] **Validasi**: Membersihkan judul dan deskripsi melalui `validate_<field>` dan `strip_tags`, menolak teks yang kosong setelah dibersihkan, memvalidasi pilihan kategori, serta membatasi URL thumbnail ke HTTP/HTTPS.
+- [X] **Privasi**: Hanya menampilkan informasi publik; email, password hash, dan ID internal akun pemberi star tidak dikirim ke klien.
+- [X] **Empat Peran**: Menggunakan `IsPortfolioOwnerOrEditorOrReadOnly` dengan pemeriksaan Editor yang sama seperti view lama. Pengunjung dan pengguna biasa dapat membaca, tetapi tidak dapat menambah, mengubah, atau menghapus data; Editor dapat PUT/PATCH; superuser dapat melakukan seluruh CRUD.
+- [X] **Star**: Menggunakan `IsAuthenticated`; akun pemberi star selalu berasal dari `request.user`, tanpa mempercayai ID akun dari payload.
+- [X] **API dan URL**: Menambahkan function-based API view dengan `@api_view`, `SessionAuthentication`, serta nama URL unik di bawah `/api/v1/experiences/`.
+- [X] **Status HTTP**: Menggunakan `201` untuk create, `400` untuk validasi, `403` untuk penolakan akses, `404` untuk objek yang tidak ditemukan, dan `204` tanpa body untuk delete.
+- [X] **Integrasi Halaman**: Daftar, pencarian, tambah, star/unstar, ubah dengan modal PATCH, serta hapus dengan DELETE berjalan melalui API baru tanpa reload.
+- [X] **CSRF dan XSS**: Semua mutasi mengirim `X-CSRFToken`; cookie CSRF juga tersedia bagi pengguna biasa dan Editor. Teks kartu, toast, dan error menggunakan `textContent`, sedangkan URL gambar divalidasi sebelum dipasang.
+- [X] **UI/UX Tambahan**: Filter kategori dan status dapat digabung dengan pencarian, disimpan di URL agar dapat dibagikan, serta dilengkapi jumlah hasil dan tombol reset. Tersedia tombol coba lagi ketika gagal memuat data, error di dekat field, fokus ke field invalid, dan tombol simpan yang dinonaktifkan selama request.
+- [X] **Optimasi Query**: Mengambil relasi star dengan `Prefetch` yang hanya memuat ID dan username. Ketiga field star memakai cache yang sama sehingga daftar berisi banyak kartu tetap membutuhkan dua query data.
+- [X] **Pengujian API**: Menambahkan `APITestCase` untuk empat peran, pemeriksaan isi database pada request yang ditolak, PUT/PATCH, sanitasi, field read-only, privasi, star, 404, 405, serta jumlah query.
+- [X] **Pengujian CSRF Sesi**: Memakai `APIClient(enforce_csrf_checks=True)` dan `.login()` untuk membuktikan seluruh jenis mutasi ditolak tanpa token atau dengan token salah, lalu diterima dengan token yang benar.
+- [X] **Verifikasi Eksekusi**: `python manage.py test main` lulus **111 test**, termasuk 27 test API Experience baru dan test Tutorial 07. `manage.py check` bersih dan pemeriksaan migrasi tidak mendeteksi perubahan skema.
+- [X] **Verifikasi Browser**: Alur empat peran, CRUD/star tanpa reload, error 400/403, filter, serta retry jaringan lulus pemeriksaan browser pada database uji terpisah tanpa error JavaScript. Tampilan desktop dan mobile 390 px diperiksa; server dengan konfigurasi asli juga merespons halaman utama, Experience, Projects, dan kedua API dengan `200`.
+- [X] **Dokumentasi**: Melengkapi empat jawaban reflektif, langkah setup/verifikasi, pemetaan endpoint, analisis bantuan AI, dan prompt ke-7 yang membahas konsep.
+
+### Menjalankan dan Memeriksa Tugas 6
+
+Gunakan virtual environment dan dependency proyek yang sama. Setelah mengaktifkannya, jalankan:
+
+```bash
+python -m pip install -r requirements.txt
+python manage.py migrate
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test main
+python manage.py runserver
+```
+
+Tidak ada migrasi Experience baru untuk tugas ini; `migrate` tetap diperlukan pada instalasi baru agar tabel dan group `Editor` dari tugas sebelumnya tersedia. Untuk pengujian manual, buat pemilik dengan `python manage.py createsuperuser`, daftarkan akun biasa melalui `/register/`, lalu masukkan akun Editor ke group `Editor` melalui `/admin/`.
+
+Buka `/experience/` untuk alur AJAX dan `/api/v1/experiences/` untuk Browsable API. Login melalui `/login/` atau `/api-auth/login/` agar API menggunakan sesi yang sama. Halaman `/projects/` dan `/api/v1/projects/` tetap memakai implementasi Tutorial 07. Route form dan JSON lama dipertahankan untuk kompatibilitas serta pengujian tugas sebelumnya; halaman Experience yang baru mengambil data dari API DRF.
+
+### Endpoint Tugas 6
+
+| Method | Endpoint | Hak akses dan hasil |
+| ------ | -------- | ------------------- |
+| `GET` | `/api/v1/experiences/` | Publik; daftar berupa array JSON |
+| `GET` | `/api/v1/experiences/?title=mentor&category=volunteer&status=ongoing` | Publik; kombinasi pencarian judul, kategori, dan status |
+| `POST` | `/api/v1/experiences/` | Superuser; membuat data (`201`) |
+| `GET` | `/api/v1/experiences/<uuid>/` | Publik; detail data (`200`) |
+| `PUT` | `/api/v1/experiences/<uuid>/` | Editor/superuser; mengganti seluruh field yang dapat ditulis (`200`) |
+| `PATCH` | `/api/v1/experiences/<uuid>/` | Editor/superuser; mengubah field yang dikirim (`200`) |
+| `DELETE` | `/api/v1/experiences/<uuid>/` | Superuser; menghapus data (`204`, body kosong) |
+| `POST` | `/api/v1/experiences/<uuid>/star/` | Semua akun yang login; toggle star akun tersebut (`200`) |
+
+Field input: `title`, `description`, `category`, dan `thumbnail`. Pada PUT, tiga field pertama wajib dikirim; thumbnail yang tidak dikirim kembali menjadi string kosong. PATCH mempertahankan field yang tidak dikirim. Tanggal tetap dikelola seperti pada form tugas sebelumnya. Parameter `status` menerima `ongoing` atau `completed`; tanpa filter, semua status ditampilkan.
+
+Contoh payload tambah atau PUT:
+
+```json
+{
+  "title": "Mentor Pemrograman",
+  "description": "Mendampingi peserta belajar Python dan Django.",
+  "category": "volunteer",
+  "thumbnail": "https://example.com/mentor.jpg"
+}
+```
+
+Respons menggunakan struktur datar (`id`, `title`, dan seterusnya), berbeda dari format `pk`/`fields` pada JSON lama. Error validasi berbentuk daftar pesan per field, misalnya `{"title": ["This field is required."]}`; penolakan izin memakai key `detail`. JavaScript menangani keduanya melalui helper request yang sama.
+
+### Alur Verifikasi Manual
+
+1. Sebagai pengunjung, buka daftar dan Browsable API. Tombol star mengarahkan ke login; kontrol tambah, ubah, dan hapus tidak ditampilkan.
+2. Login sebagai pengguna biasa, klik star lalu unstar. Jumlah dan status star berubah tanpa reload.
+3. Login sebagai Editor, klik **Ubah**, periksa data yang terisi otomatis, lalu simpan. Data berubah melalui PATCH; kontrol tambah dan hapus tidak tersedia.
+4. Login sebagai pemilik, tambah data, ubah, dan hapus setelah konfirmasi. Coba kirim judul kosong untuk melihat error field dan toast tanpa kehilangan isi form.
+5. Gabungkan pencarian dan filter, salin URL, lalu buka ulang. Filter tetap terpilih. Gunakan **Reset** untuk kembali ke seluruh daftar.
+6. Periksa `/projects/` untuk memastikan fitur Tutorial 07 tetap berjalan. Cakupan otomatis juga memeriksa akses dan Browsable API Projects.
+
+### Git dan Pengumpulan
+
+Perubahan Tugas 6 disiapkan pada branch `feat/tugas6`. Pembagian commit yang disarankan mengikuti bagian implementasinya:
+
+1. `feat(api): add Experience serializer permissions and DRF endpoints` — serializer, permission, API view, dan URL.
+2. `feat(experience): connect CRUD and star to DRF with filters` — view halaman, template, JavaScript, dan CSS.
+3. `test(experience): cover roles validation session CSRF and query count` — test API dan penyesuaian test halaman ke endpoint baru.
+4. `docs: document assignment 6 progress API and reflections` — README.
+
+Langkah pengumpulan tetap perlu diselesaikan setelah perubahan ditinjau:
+
+- [ ] Membuat commit bertahap dengan pesan deskriptif pada branch fitur.
+- [ ] Push hasil akhir ke repository GitHub publik, lalu memastikan tautan commit dapat dibuka.
+- [ ] Mengumpulkan **tautan commit akhir**, bukan hanya URL repository, melalui SCELE paling lambat **9 November 2026 pukul 23.59 WIB**. Prasyarat pengumpulan Tutorial 07 mengikuti ketentuan kelas, dengan tenggat **4 November 2026 pukul 23.59 WIB**.
+
+---
+
 ## Pertanyaan Reflektif
 
 ### Tugas 1
@@ -272,6 +364,34 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
 
 ---
 
+### Tugas 6
+
+1. **Jelaskan apa yang dimaksud dengan REST dan mengapa mengembalikan JSON saja belum cukup untuk menyebut sebuah API sebagai RESTful! Jelaskan pula perbedaan PUT dan PATCH beserta contoh kapan masing-masing sebaiknya digunakan!**
+
+   REST adalah gaya arsitektur untuk mengatur komunikasi antara klien dan server melalui resource dan representasinya. JSON hanya format data. Endpoint yang mengembalikan JSON, tetapi memakai GET untuk menghapus data, belum menerapkan semantik HTTP dengan benar. REST juga mencakup antarmuka yang konsisten, pemisahan klien dan server, statelessness, cacheability, dan sistem berlapis.
+
+   Di proyek saya, `/api/v1/experiences/<uuid>/` mewakili satu Experience, sementara method menyatakan tindakan terhadapnya. PUT saya gunakan ketika klien mengirim seluruh data yang dapat diedit: judul, deskripsi, kategori, dan thumbnail opsional. PATCH cocok ketika hanya judul yang berubah, misalnya `{"title": "Asisten Dosen PBP"}`, sehingga deskripsi dan kategori tetap dipertahankan. Saya juga tidak menyebut implementasi ini REST murni: autentikasinya masih memakai sesi server dan endpoint `/star/` berbentuk aksi. Kontrak resource, method, dan statusnya tetap dibuat konsisten.
+
+2. **Jelaskan peran serializer pada Django REST Framework! Apa keuntungannya dibandingkan merakit dictionary secara manual dengan JsonResponse seperti pada Tutorial 05?**
+
+   Serializer menjadi penghubung antara objek model dan representasi data API. Pada alur baca, `ExperienceSerializer` mengubah objek menjadi tipe data yang kemudian dirender sebagai JSON. Pada alur tulis, serializer memeriksa input, menghasilkan `validated_data`, dan menyimpan data yang valid melalui `.save()`.
+
+   Pada Tugas 5 saya merakit dictionary dan metadata star di view, sedangkan validasi bergantung pada form. Dengan DRF, daftar field, validasi teks, serta field hasil perhitungan dikumpulkan di serializer yang sama untuk list, detail, create, dan update. Ini mengurangi kemungkinan format respons antarlayanan berbeda. Field read-only juga membuat klien tidak bisa menentukan jumlah star atau ID objek sendiri. Error per field langsung dapat dipakai toast dan form. Referensi: [DRF Serializers](https://www.django-rest-framework.org/api-guide/serializers/).
+
+3. **Jelaskan perbedaan autentikasi dan otorisasi pada Django REST Framework! Mengapa hak akses harus diperiksa dengan permission class di server, bukan hanya dengan menyembunyikan tombol di template?**
+
+   Autentikasi menjawab siapa yang mengirim request. Di proyek ini, `SessionAuthentication` mengenali akun dari sesi login dan mengisi `request.user`. Otorisasi menentukan tindakan yang boleh dilakukan akun itu. Sebagai contoh, Editor berhasil dikenali sebagai pengguna yang login, tetapi hanya diizinkan PUT/PATCH pada Experience, bukan POST untuk membuat atau DELETE untuk menghapus.
+
+   Menyembunyikan tombol membantu pengguna memahami haknya, tetapi tidak membatasi request HTTP. Pengguna tetap bisa mengirim DELETE langsung melalui alat lain. Karena itu, `IsPortfolioOwnerOrEditorOrReadOnly` harus menolak request tersebut di server sebelum data diubah. Endpoint star mempunyai aturan terpisah melalui `IsAuthenticated`, dan pemilik star selalu diambil dari `request.user`. Pada test penolakan, saya memeriksa status `403` sekaligus isi database agar penolakan benar-benar tidak menyimpan perubahan.
+
+4. **Jelaskan mengapa permintaan yang mengubah data tetap memerlukan token CSRF ketika API memakai SessionAuthentication! Mengapa test yang memakai force_authenticate tidak cukup untuk membuktikan bahwa perlindungan CSRF berjalan?**
+
+   Browser menyertakan cookie sesi secara otomatis pada request yang memenuhi aturan cookie. Identitas yang sah saja belum membuktikan bahwa request berasal dari halaman yang memang dibuka pengguna. Token CSRF membantu server memeriksa hal tersebut sebelum menerima POST, PUT, PATCH, atau DELETE. Karena frontend dan API memakai sesi yang sama, request Fetch saya tetap mengirim header `X-CSRFToken`. Bentuk body JSON tidak menggantikan pemeriksaan ini. Referensi: [DRF SessionAuthentication](https://www.django-rest-framework.org/api-guide/authentication/#sessionauthentication).
+
+   `force_authenticate` memasang pengguna uji dengan melewati autentikasi normal, sehingga test yang sukses belum menguji jalur sesi dan CSRF sebenarnya. Saya memakai `APIClient(enforce_csrf_checks=True)` dan `.login()`, mengambil cookie CSRF dari halaman Experience, lalu membandingkan request tanpa token, token salah, dan token benar. Dua skenario pertama harus mendapat `403` tanpa perubahan database; skenario terakhir harus berhasil. Referensi: [DRF CSRF Testing](https://www.django-rest-framework.org/api-guide/testing/#csrf-validation).
+
+---
+
 ## AI Disclosure
 
 ### 1. Tools yang Digunakan
@@ -307,6 +427,12 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Mengaudit pemakaian source code, memusatkan helper AJAX yang duplikatif, serta menghapus partial dan CSS yang tidak lagi memiliki pemakai.
   - Menambah test regresi dan test khusus Tugas 5 sebelum verifikasi `manage.py check`, migrasi, test suite, dan server lokal.
 
+- **Tugas 6**:
+  - Memetakan rubrik tugas ke implementasi Experience sambil mempertahankan model, data, kontrol peran, dan API Projects dari Tutorial 07.
+  - Membantu menyusun serializer, permission, API view berbasis fungsi, serta integrasi CRUD dan star melalui Fetch API.
+  - Membantu menambahkan filter, penanganan error field, dan optimasi prefetch untuk metadata star.
+  - Membantu menulis pengujian izin dengan pemeriksaan database, validasi, privasi, query, serta CSRF melalui sesi login; jawaban reflektif dikaitkan dengan keputusan kode yang bisa diperiksa.
+
 ### 3. Strategi Prompting
 
 - Menggunakan instruksi terarah dan bertahap (*step-by-step*).
@@ -315,6 +441,7 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
 - Untuk Tugas 3, memberikan checklist fitur dan rubrik penilaian lengkap agar AI dapat memetakan setiap perubahan kode ke kriteria yang harus diverifikasi.
 - Untuk Tugas 4, meminta AI membaca PDF dan rubrik terlebih dahulu, mengaudit implementasi Tutorial 04 yang sudah ada, lalu membuktikan setiap aturan akses melalui automated test.
 - Untuk Tugas 5, memberikan batasan agar AI hanya mengimplementasikan instruksi PDF, menghapus kode hanya jika terbukti redundan/tidak terpakai.
+- Untuk Tugas 6, membahas konsep REST, PUT/PATCH, serializer, serta sesi dan CSRF dengan contoh Experience. Hasil penjelasan dicocokkan dengan kode, dokumentasi resmi, dan perilaku test; AI tidak dijadikan sumber kebenaran tunggal.
 
 ### 4. Analisis Kritis & Perbaikan Mandiri
 
@@ -326,6 +453,8 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Browser terintegrasi tidak tersedia ketika Tugas 3 diverifikasi, sehingga pengecekan runtime dilanjutkan melalui request HTTP ke server lokal dan Django test client.
   - AI tidak dapat menentukan siapa yang seharusnya menjadi Editor hanya dari username; keanggotaan group tetap harus ditetapkan secara sadar oleh pemilik melalui Django Admin.
   - Implementasi awal Tugas 5 berpotensi menduplikasi `getCookie`, sanitasi URL, dan escaping pada setiap halaman; helper tersebut perlu diaudit agar satu sumber kebenaran dipakai bersama.
+  - Pada Tugas 6, test dengan `force_authenticate` saja bisa memberi kesan bahwa keamanan sesi sudah diuji, padahal jalur pemeriksaan CSRF dilewati. Field star juga perlu diperiksa agar tidak menerima nilai palsu dari payload.
+  - Serializer yang memanggil relasi star berkali-kali dapat menimbulkan query tambahan per kartu jika queryset tidak melakukan prefetch. Kode yang terlihat ringkas belum tentu efisien.
 - **Perbaikan Manual yang Dilakukan**:
   - Menginstruksikan AI untuk membuat rencana implementasi terlebih dahulu (*implementation plan*) dan melarang tindakan commit Git otomatis agar saya memegang kendali penuh atas riwayat commit repositori.
   - Memastikan data proyek yang dimasukkan ke database selaras dengan aset lokal yang telah disiapkan di `static/img/projects/`.
@@ -334,6 +463,8 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
   - Memastikan aturan UI selalu didukung pemeriksaan server-side dan tidak menganggap tombol yang disembunyikan sebagai mekanisme keamanan.
   - Memverifikasi skenario empat peran dengan test client, termasuk POST tanpa izin, CSRF, dan bentuk data endpoint JSON.
   - Memastikan Experience menggunakan `textContent` alih-alih `innerHTML`, mempertahankan pemeriksaan izin di view, dan menambahkan test payload XSS serta status `201`, `400`, dan `403`.
+  - Pada Tugas 6, mencocokkan pemeriksaan Editor dengan helper peran lama, menambahkan test login sesi dengan CSRF aktif, serta memastikan setiap penolakan mempertahankan data dan relasi star.
+  - Menguji bahwa payload tidak dapat mengubah field read-only, menolak thumbnail dengan skema selain HTTP/HTTPS, dan membuktikan jumlah query daftar tetap dua melalui `assertNumQueries`.
 
 ### 5. Log Prompt Utama
 
@@ -343,3 +474,4 @@ Elemen-elemen ini membantu pembuatan static web dalam beberapa aspek:
 4. *"/browser fufufarizz.vercel.app, Saya memberikan link browser sebagai referensi tahap 10 tugas yang sudah jadi, sedangkan sekarang, saya meminta anda untuk menyelesaikan tahap 2. Berikut saya berikan perintah dan tahapan yang harus anda kerjakan untuk menyelesaikan tugas tahap 2. Tugas: Terapkan pola Model-View-Template (MVT)... Buatkan implementation plannya, jangan melakukan commit apapun secara mandiri."*
 5. *"Refactor seluruh berkas HTML identik agar extend template utama, lalu terapkan Create Form, Update Form, Data Deletion, JSON Data Delivery, dan tampilan hasil deserialisasi untuk satu bagian portofolio lain. Pastikan proyek dapat dijalankan tanpa error."*
 6. *"Baca kode pada source code, hapus implementasi yang redundan atau tidak terpakai, lalu baca tugas-5.pdf. Buatkan file HINT.md yang memuat panduan untuk menyelesaikan tugas 5 berdasarkan kode yang sudah terimplementasi dan lanjutkan dengan memberikan kode yang perlu diterapkan beserta dengan kegunaannya masing-masing. Jangan mengimplementasi kode secara langsung ke source code dan jangan melakukan commit apapun."*
+7. *"Mengapa API yang mengembalikan JSON belum tentu RESTful? Dalam konteks data Experience, kapan PUT lebih tepat daripada PATCH, dan bagaimana serializer membedakan field input dengan field read-only seperti jumlah star? Saya juga ingin memahami mengapa SessionAuthentication tetap membutuhkan CSRF dan mengapa force_authenticate belum membuktikan perlindungan itu berjalan. Jelaskan konsep dan alur request-nya dengan contoh sederhana."*

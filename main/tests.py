@@ -54,7 +54,7 @@ class MainTest(TestCase):
         self.assertContains(response, 'id="experience-error"')
         self.assertContains(response, 'id="experience-empty"')
         self.assertContains(response, 'id="experience-grid"')
-        self.assertContains(response, reverse("main:get_experiences_json"))
+        self.assertContains(response, reverse("api:experience-list"))
         self.assertNotContains(response, self.experience.title)
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
         self.assertContains(response, f'href="{reverse("main:show_projects")}"')
